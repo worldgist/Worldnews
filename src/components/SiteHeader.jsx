@@ -1,10 +1,21 @@
 import { useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { tickerItems, categories } from '../data/feed'
 
 export default function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const navigate = useNavigate()
+
   const closeMenu = () => setMenuOpen(false)
+
+  const submitSearch = (e) => {
+    e.preventDefault()
+    const query = searchQuery.trim()
+    const searchPath = query ? `/search?q=${encodeURIComponent(query)}` : '/search'
+    navigate(searchPath)
+    closeMenu()
+  }
 
   return (
     <header className="site-header">
@@ -31,7 +42,23 @@ export default function SiteHeader() {
           <span className="brand-text">World Gist News</span>
         </Link>
 
-        <button className="search-btn icon-btn" type="button" aria-label="Search">
+        <form className="header-search-form" onSubmit={submitSearch} role="search" aria-label="Search news">
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search news..."
+            aria-label="Search news"
+          />
+          <button type="submit">Search</button>
+        </form>
+
+        <button
+          className="search-btn icon-btn"
+          type="button"
+          aria-label="Go to search"
+          onClick={() => navigate('/search')}
+        >
           <span aria-hidden="true">⌕</span>
         </button>
 
@@ -48,6 +75,17 @@ export default function SiteHeader() {
             x
           </button>
 
+          <form className="main-nav-search" onSubmit={submitSearch} role="search" aria-label="Search news">
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search news..."
+              aria-label="Search news"
+            />
+            <button type="submit">Search</button>
+          </form>
+
           <NavLink to="/" end onClick={closeMenu}>
             Home
           </NavLink>
@@ -60,6 +98,15 @@ export default function SiteHeader() {
               {cat}
             </NavLink>
           ))}
+          <NavLink to="/about-us" onClick={closeMenu}>
+            About Us
+          </NavLink>
+          <NavLink to="/contact-us" onClick={closeMenu}>
+            Contact Us
+          </NavLink>
+          <NavLink to="/terms-and-conditions" onClick={closeMenu}>
+            Terms and Conditions
+          </NavLink>
         </nav>
       </div>
 

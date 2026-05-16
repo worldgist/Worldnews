@@ -69,7 +69,7 @@ export default function HomePage() {
 
       <section className="readmore-strip">
         <span>READ MORE</span>
-        <Link to="/category/politics">View all</Link>
+        <Link to="/politics-news">View all</Link>
       </section>
 
       {/* ── Hero ──────────────────────────────────────────────── */}
@@ -104,7 +104,7 @@ export default function HomePage() {
       <section id="latest" className="news-section">
         <div className="section-head">
           <h2>Latest Dispatches</h2>
-          <Link to="/category/world">View all</Link>
+          <Link to="/world-news">View all</Link>
         </div>
         <div className="card-grid">
           {latest.map((article) => (
@@ -116,7 +116,7 @@ export default function HomePage() {
       <section className="news-section" id="more-stories">
         <div className="section-head">
           <h2>More Top Stories</h2>
-          <Link to="/category/politics">See all sections</Link>
+          <Link to="/world-news">See all sections</Link>
         </div>
         <div className="card-grid">
           {moreStories.map((article) => (
@@ -143,7 +143,7 @@ export default function HomePage() {
       <section className="news-section" id="latest-posts">
         <div className="section-head">
           <h2>Latest Posts</h2>
-          <Link to="/category/world">Browse all</Link>
+          <Link to="/world-news">Browse all</Link>
         </div>
         <div className="card-grid">
           {latestPosts.map((article) => (
@@ -157,7 +157,7 @@ export default function HomePage() {
         <div id="politics" className="split-column">
           <div className="section-head">
             <h2>Politics</h2>
-            <Link to="/category/politics">More</Link>
+            <Link to="/politics-news">More</Link>
           </div>
           {politicsStories.map((story) => (
             <Link className="list-card list-card-link" key={story.id} to={`/article/${story.id}`} target="_blank" rel="noopener noreferrer">
@@ -171,7 +171,7 @@ export default function HomePage() {
         <div id="sports" className="split-column">
           <div className="section-head">
             <h2>Sports</h2>
-            <Link to="/category/sports">More</Link>
+            <Link to="/sports-news">More</Link>
           </div>
           {sportsStories.map((story) => (
             <Link className="list-card list-card-link" key={story.id} to={`/article/${story.id}`} target="_blank" rel="noopener noreferrer">
@@ -187,7 +187,7 @@ export default function HomePage() {
         <div id="school-updates" className="split-column">
           <div className="section-head">
             <h2>School Updates</h2>
-            <Link to="/category/school">More</Link>
+            <Link to="/school-news">More</Link>
           </div>
           {schoolUpdates.map((story) => (
             <Link className="list-card list-card-link" key={story.id} to={`/article/${story.id}`} target="_blank" rel="noopener noreferrer">
@@ -201,7 +201,7 @@ export default function HomePage() {
         <div id="technology-updates" className="split-column">
           <div className="section-head">
             <h2>Technology Updates</h2>
-            <Link to="/category/technology">More</Link>
+            <Link to="/technology-news">More</Link>
           </div>
           {technologyUpdates.map((story) => (
             <Link className="list-card list-card-link" key={story.id} to={`/article/${story.id}`} target="_blank" rel="noopener noreferrer">
