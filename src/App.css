@@ -1596,7 +1596,7 @@ blockquote {
 
 .post-editor-meta-row {
   display: grid;
-  grid-template-columns: repeat(2, minmax(140px, 220px)) 1fr;
+  grid-template-columns: repeat(4, minmax(140px, 220px)) 1fr;
   gap: 0.55rem;
   padding: 0.7rem 0.85rem;
   background: var(--editor-bg);
@@ -2086,6 +2086,22 @@ blockquote {
   margin: 0 0 0.5rem;
 }
 
+.admin-post-list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.55rem;
+}
+
+.admin-post-list-head select {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  padding: 0.4rem 0.55rem;
+}
+
 .admin-post-list ul {
   list-style: none;
   margin: 0;
@@ -2109,6 +2125,33 @@ blockquote {
   color: var(--muted);
   font-family: 'Space Grotesk', sans-serif;
   font-size: 0.85rem;
+}
+
+.admin-post-item-actions {
+  display: inline-flex;
+  gap: 0.45rem;
+}
+
+.post-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+  margin-right: 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.post-status-badge.published {
+  color: #05603a;
+  background: #d8f3e7;
+}
+
+.post-status-badge.scheduled {
+  color: #7a4900;
+  background: #ffe7be;
 }
 
 .admin-quick-links h3 {

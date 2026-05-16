@@ -67,6 +67,21 @@ function estimateReadTime(text) {
   return `${minutes} min`
 }
 
+function formatDateLabel(dateValue) {
+  return dateValue.toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
+
+function formatDateTime(isoString) {
+  if (!isoString) return 'N/A'
+  const value = new Date(isoString)
+  if (Number.isNaN(value.getTime())) return 'N/A'
+  return value.toLocaleString()
+}
+
 export default function AdminPostsPage() {
   const [managedCategories] = useState(loadCategories())
   const [adminPosts, setAdminPosts] = useState(loadPosts())
@@ -79,6 +94,9 @@ export default function AdminPostsPage() {
   const [showQuickMenu, setShowQuickMenu] = useState(false)
   const [showSettingsMenu, setShowSettingsMenu] = useState(false)
   const [autosaveEnabled, setAutosaveEnabled] = useState(true)
+  const [publishMode, setPublishMode] = useState('publish-now')
+  const [scheduledAt, setScheduledAt] = useState('')
+  const [postsFilter, setPostsFilter] = useState('all')
   const [themeMode, setThemeMode] = useState(
     () => localStorage.getItem(THEME_STORAGE_KEY) || 'light',
   )
@@ -90,6 +108,10 @@ export default function AdminPostsPage() {
   const imageInputRef = useRef(null)
 
   const sanitizedPreviewHTML = useMemo(() => cleanHTML(editorHTML), [editorHTML])
+  const filteredPosts = useMemo(() => {
+    if (postsFilter === 'all') return adminPosts
+    return adminPosts.filter((post) => (post.status || 'published') === postsFilter)
+  }, [adminPosts, postsFilter])
 
   useEffect(() => {
     let draft = null
@@ -275,6 +297,21 @@ export default function AdminPostsPage() {
 
     const summary = `${plain.slice(0, 160)}${plain.length > 160 ? '...' : ''}`
     const body = paragraphsFromHTML(clean)
+    const isScheduled = publishMode === 'schedule'
+    const scheduleDate = isScheduled ? new Date(scheduledAt) : null
+
+    if (isScheduled) {
+      if (!scheduledAt || Number.isNaN(scheduleDate.getTime())) {
+        alert('Please choose a valid date and time for scheduling.')
+        return
+      }
+      if (scheduleDate.getTime() <= Date.now()) {
+        alert('Scheduled publish time must be in the future.')
+        return
+      }
+    }
+
+    const publishDate = isScheduled ? scheduleDate : new Date()
 
     const newPost = {
       id: `${toSlug(headline)}-${Date.now()}`,
@@ -283,27 +320,44 @@ export default function AdminPostsPage() {
       summary,
       body,
       author: author.trim() || 'worldgistnews',
-      date: new Date().toLocaleDateString('en-US', {
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric',
-      }),
+      date: formatDateLabel(publishDate),
       readTime: estimateReadTime(plain),
       image:
         'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=900&q=80',
       featured: false,
       htmlContent: clean,
+      status: isScheduled ? 'scheduled' : 'published',
+      scheduledFor: isScheduled ? scheduleDate.toISOString() : null,
+      publishedAt: isScheduled ? null : publishDate.toISOString(),
     }
 
     const nextPosts = [newPost, ...adminPosts]
     setAdminPosts(nextPosts)
     savePosts(nextPosts)
     localStorage.removeItem(DRAFT_STORAGE_KEY)
-    alert('Post published successfully.')
+    setScheduledAt('')
+    setPublishMode('publish-now')
+    alert(isScheduled ? 'Post scheduled successfully.' : 'Post published successfully.')
   }
 
   const handleDeletePost = (postId) => {
     const nextPosts = adminPosts.filter((post) => post.id !== postId)
+    setAdminPosts(nextPosts)
+    savePosts(nextPosts)
+  }
+
+  const handlePublishNow = (postId) => {
+    const publishDate = new Date()
+    const nextPosts = adminPosts.map((post) => {
+      if (post.id !== postId) return post
+      return {
+        ...post,
+        status: 'published',
+        scheduledFor: null,
+        publishedAt: publishDate.toISOString(),
+        date: formatDateLabel(publishDate),
+      }
+    })
     setAdminPosts(nextPosts)
     savePosts(nextPosts)
   }
@@ -484,6 +538,19 @@ export default function AdminPostsPage() {
           placeholder="Author"
           onChange={(event) => setAuthor(event.target.value)}
         />
+        <select value={publishMode} onChange={(event) => setPublishMode(event.target.value)}>
+          <option value="publish-now">Publish Now</option>
+          <option value="schedule">Schedule Post</option>
+        </select>
+        {publishMode === 'schedule' && (
+          <input
+            type="datetime-local"
+            value={scheduledAt}
+            min={new Date(Date.now() + 60000).toISOString().slice(0, 16)}
+            onChange={(event) => setScheduledAt(event.target.value)}
+            aria-label="Scheduled publish time"
+          />
+        )}
         <span className="post-save-indicator">
           {autosaveEnabled
             ? (lastSavedAt
@@ -530,20 +597,42 @@ export default function AdminPostsPage() {
       </AnimatePresence>
 
       <div className="admin-post-list">
-        <h4>Saved Admin Posts ({adminPosts.length})</h4>
-        {adminPosts.length === 0 ? (
+        <div className="admin-post-list-head">
+          <h4>Saved Admin Posts ({adminPosts.length})</h4>
+          <select value={postsFilter} onChange={(event) => setPostsFilter(event.target.value)}>
+            <option value="all">All posts</option>
+            <option value="published">Published only</option>
+            <option value="scheduled">Scheduled only</option>
+          </select>
+        </div>
+        {filteredPosts.length === 0 ? (
           <p>No admin posts yet.</p>
         ) : (
           <ul>
-            {adminPosts.map((post) => (
+            {filteredPosts.map((post) => (
               <li key={post.id}>
                 <div>
                   <strong>{post.title}</strong>
                   <p>{post.category} | {post.author} | {post.date}</p>
+                  <p>
+                    <span className={`post-status-badge ${(post.status || 'published')}`}>
+                      {(post.status || 'published').toUpperCase()}
+                    </span>
+                    {(post.status || 'published') === 'scheduled'
+                      ? ` Scheduled for: ${formatDateTime(post.scheduledFor)}`
+                      : ` Published at: ${formatDateTime(post.publishedAt)}`}
+                  </p>
                 </div>
-                <button type="button" className="btn-danger" onClick={() => handleDeletePost(post.id)}>
-                  Delete
-                </button>
+                <div className="admin-post-item-actions">
+                  {(post.status || 'published') === 'scheduled' && (
+                    <button type="button" onClick={() => handlePublishNow(post.id)}>
+                      Publish Now
+                    </button>
+                  )}
+                  <button type="button" className="btn-danger" onClick={() => handleDeletePost(post.id)}>
+                    Delete
+                  </button>
+                </div>
               </li>
             ))}
           </ul>

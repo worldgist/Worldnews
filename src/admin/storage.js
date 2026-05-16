@@ -77,7 +77,45 @@ export function loadPosts() {
     const saved = localStorage.getItem(POST_STORAGE_KEY)
     if (!saved) return []
     const parsed = JSON.parse(saved)
-    return Array.isArray(parsed) ? parsed : []
+    if (!Array.isArray(parsed)) return []
+
+    let hasChange = false
+    const now = Date.now()
+    const nextPosts = parsed.map((post) => {
+      const normalizedStatus = post.status || 'published'
+      const normalized = {
+        ...post,
+        status: normalizedStatus,
+      }
+
+      if (!post.status) {
+        hasChange = true
+      }
+
+      if (normalizedStatus === 'scheduled') {
+        const scheduledMs = Date.parse(post.scheduledFor || '')
+        if (Number.isFinite(scheduledMs) && scheduledMs <= now) {
+          const publishedDate = new Date(scheduledMs)
+          normalized.status = 'published'
+          normalized.scheduledFor = null
+          normalized.publishedAt = publishedDate.toISOString()
+          normalized.date = publishedDate.toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric',
+          })
+          hasChange = true
+        }
+      }
+
+      return normalized
+    })
+
+    if (hasChange) {
+      localStorage.setItem(POST_STORAGE_KEY, JSON.stringify(nextPosts))
+    }
+
+    return nextPosts
   } catch {
     return []
   }
