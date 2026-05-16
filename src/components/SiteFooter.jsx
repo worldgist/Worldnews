@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { categories } from '../data/feed'
-import { DEFAULT_SETTINGS, loadSettings, getCategoryPath } from '../admin/storage'
+import { DEFAULT_SETTINGS, loadSettings } from '../admin/storage'
 
 export default function SiteFooter() {
   const [settings, setSettings] = useState(loadSettings())
@@ -83,31 +82,35 @@ export default function SiteFooter() {
             <h2 className="footer-heading">Company</h2>
             <ul className="footer-links">
               <li>
-                <Link to="/about-us">About Us</Link>
+                <Link to="/about-us" target="_blank" rel="noopener noreferrer">
+                  About Us
+                  <span className="sr-only"> (opens in new tab)</span>
+                </Link>
               </li>
               <li>
-                <Link to="/contact-us">Contact Us</Link>
+                <Link to="/contact-us" target="_blank" rel="noopener noreferrer">
+                  Contact Us
+                  <span className="sr-only"> (opens in new tab)</span>
+                </Link>
               </li>
               <li>
-                <Link to="/advertise">Advertise</Link>
+                <Link to="/advertise" target="_blank" rel="noopener noreferrer">
+                  Advertise
+                  <span className="sr-only"> (opens in new tab)</span>
+                </Link>
               </li>
               <li>
-                <Link to="/submit-news">Submit News</Link>
+                <Link to="/submit-news" target="_blank" rel="noopener noreferrer">
+                  Submit News
+                  <span className="sr-only"> (opens in new tab)</span>
+                </Link>
               </li>
               <li>
-                <Link to="/terms-and-conditions">Terms &amp; Conditions</Link>
+                <Link to="/terms-and-conditions" target="_blank" rel="noopener noreferrer">
+                  Terms &amp; Conditions
+                  <span className="sr-only"> (opens in new tab)</span>
+                </Link>
               </li>
-            </ul>
-          </nav>
-
-          <nav className="footer-col" aria-label="Topics">
-            <h2 className="footer-heading">Topics</h2>
-            <ul className="footer-links footer-links--two-col">
-              {categories.map((cat) => (
-                <li key={cat}>
-                  <Link to={getCategoryPath(cat)}>{cat}</Link>
-                </li>
-              ))}
             </ul>
           </nav>
         </div>

@@ -199,30 +199,63 @@ export default function SiteHeader() {
             >
               <NavLink
                 to="/about-us"
+                target="_blank"
+                rel="noopener noreferrer"
                 onClick={closeMenu}
                 className={({ isActive }) =>
                   `main-nav-link${isActive ? ' active' : ''}`
                 }
               >
                 About Us
+                <span className="sr-only"> (opens in new tab)</span>
               </NavLink>
               <NavLink
                 to="/contact-us"
+                target="_blank"
+                rel="noopener noreferrer"
                 onClick={closeMenu}
                 className={({ isActive }) =>
                   `main-nav-link${isActive ? ' active' : ''}`
                 }
               >
                 Contact Us
+                <span className="sr-only"> (opens in new tab)</span>
+              </NavLink>
+              <NavLink
+                to="/advertise"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={closeMenu}
+                className={({ isActive }) =>
+                  `main-nav-link${isActive ? ' active' : ''}`
+                }
+              >
+                Advertise
+                <span className="sr-only"> (opens in new tab)</span>
+              </NavLink>
+              <NavLink
+                to="/submit-news"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={closeMenu}
+                className={({ isActive }) =>
+                  `main-nav-link${isActive ? ' active' : ''}`
+                }
+              >
+                Submit News
+                <span className="sr-only"> (opens in new tab)</span>
               </NavLink>
               <NavLink
                 to="/terms-and-conditions"
+                target="_blank"
+                rel="noopener noreferrer"
                 onClick={closeMenu}
                 className={({ isActive }) =>
                   `main-nav-link${isActive ? ' active' : ''}`
                 }
               >
                 Terms &amp; Conditions
+                <span className="sr-only"> (opens in new tab)</span>
               </NavLink>
             </div>
           </div>

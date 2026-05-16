@@ -89,6 +89,11 @@ export default function App() {
   const location = useLocation()
   const isAdminRoute = location.pathname.startsWith('/admin')
 
+  /** Full URL changes are separate views; reset scroll so it never feels like an in-page section jump. */
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+  }, [location.pathname, location.search])
+
   useEffect(() => {
     const applySeo = () => {
       try {
