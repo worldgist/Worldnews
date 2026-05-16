@@ -1,6 +1,40 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
+const SETTINGS_STORAGE_KEY = 'worldnews-admin-settings'
+const DEFAULT_SETTINGS = {
+  siteName: 'World Gist News',
+  copyrightText: '(c) 2026 World Gist News.',
+}
+
 export default function SiteFooter() {
+  const [settings, setSettings] = useState(DEFAULT_SETTINGS)
+
+  useEffect(() => {
+    const syncSettings = () => {
+      try {
+        const saved = localStorage.getItem(SETTINGS_STORAGE_KEY)
+        if (!saved) {
+          setSettings(DEFAULT_SETTINGS)
+          return
+        }
+
+        const parsed = JSON.parse(saved)
+        setSettings({
+          siteName: parsed?.siteName?.trim() || DEFAULT_SETTINGS.siteName,
+          copyrightText:
+            parsed?.copyrightText?.trim() || DEFAULT_SETTINGS.copyrightText,
+        })
+      } catch {
+        setSettings(DEFAULT_SETTINGS)
+      }
+    }
+
+    syncSettings()
+    window.addEventListener('storage', syncSettings)
+    return () => window.removeEventListener('storage', syncSettings)
+  }, [])
+
   return (
     <footer className="site-footer">
       <div className="container footer-minimal">
@@ -55,10 +89,10 @@ export default function SiteFooter() {
 
         <div className="footer-brand-small">
           <Link className="brand" to="/">
-            <img className="brand-mark" src="/logo.png" alt="World Gist News logo" />
-            <span className="brand-text">World Gist News</span>
+            <img className="brand-mark" src="/logo.png" alt={`${settings.siteName} logo`} />
+            <span className="brand-text">{settings.siteName}</span>
           </Link>
-          <p>(c) 2026 World Gist News.</p>
+          <p>{settings.copyrightText}</p>
         </div>
       </div>
     </footer>

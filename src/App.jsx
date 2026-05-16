@@ -1,4 +1,5 @@
-﻿import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
+﻿import { useEffect } from 'react'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import SiteHeader from './components/SiteHeader'
 import SiteFooter from './components/SiteFooter'
 import HomePage from './pages/HomePage'
@@ -18,6 +19,8 @@ import AdminDashboardPage from './pages/AdminDashboardPage'
 import './App.css'
 
 const ADMIN_AUTH_KEY = 'worldnews-admin-auth'
+const SETTINGS_STORAGE_KEY = 'worldnews-admin-settings'
+const DEFAULT_SITE_NAME = 'World Gist News'
 
 function isAdminAuthenticated() {
   if (typeof window === 'undefined') return false
@@ -35,6 +38,27 @@ function RequireAdmin({ children }) {
 }
 
 export default function App() {
+  useEffect(() => {
+    const syncSiteTitle = () => {
+      try {
+        const saved = localStorage.getItem(SETTINGS_STORAGE_KEY)
+        if (!saved) {
+          document.title = DEFAULT_SITE_NAME
+          return
+        }
+
+        const parsed = JSON.parse(saved)
+        document.title = parsed?.siteName?.trim() || DEFAULT_SITE_NAME
+      } catch {
+        document.title = DEFAULT_SITE_NAME
+      }
+    }
+
+    syncSiteTitle()
+    window.addEventListener('storage', syncSiteTitle)
+    return () => window.removeEventListener('storage', syncSiteTitle)
+  }, [])
+
   return (
     <div className="app-shell">
       <div className="page-bg" />

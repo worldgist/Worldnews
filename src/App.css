@@ -1252,8 +1252,229 @@ blockquote {
   font-family: 'Space Grotesk', sans-serif;
 }
 
+.admin-profile {
+  margin-top: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  padding: 0.9rem;
+}
+
+.admin-profile-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+.admin-profile-head h3 {
+  margin: 0;
+}
+
+.admin-profile-head button {
+  border: 0;
+  border-radius: 10px;
+  background: var(--ink);
+  color: #fff;
+  padding: 0.45rem 0.7rem;
+  font-family: 'Space Grotesk', sans-serif;
+  cursor: pointer;
+}
+
+.admin-profile-form {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.admin-profile-form label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.admin-profile-form input,
+.admin-profile-form textarea,
+.admin-profile-form button {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.5rem 0.65rem;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.admin-profile-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.admin-profile-actions button {
+  border: 0;
+  background: var(--ink);
+  color: #fff;
+  cursor: pointer;
+}
+
+.admin-profile-actions .btn-secondary {
+  background: #6d6d6d;
+}
+
+.admin-profile-view p {
+  margin: 0.35rem 0;
+  color: var(--muted);
+  font-family: 'Space Grotesk', sans-serif;
+}
+
 .admin-quick-links {
   margin-top: 1rem;
+}
+
+.admin-categories {
+  margin-top: 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  padding: 0.9rem;
+}
+
+.admin-categories h3 {
+  margin: 0 0 0.7rem;
+}
+
+.admin-categories-form {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.admin-categories-form input,
+.admin-categories-form button,
+.admin-categories-list input,
+.admin-categories-list button {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.45rem 0.65rem;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.admin-categories-form input {
+  min-width: 230px;
+}
+
+.admin-categories-form button,
+.admin-categories-list button {
+  background: var(--ink);
+  color: #fff;
+  cursor: pointer;
+  border: 0;
+}
+
+.admin-categories-list {
+  list-style: none;
+  margin: 0.8rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.admin-categories-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  padding: 0.5rem 0.55rem;
+}
+
+.admin-categories-list li span {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  margin-right: auto;
+}
+
+.admin-categories-list .btn-secondary {
+  background: #6d6d6d;
+}
+
+.admin-categories-list .btn-danger {
+  background: #b6382b;
+}
+
+.admin-post-editor {
+  margin-top: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  padding: 0.9rem;
+}
+
+.admin-post-editor h3 {
+  margin: 0 0 0.7rem;
+}
+
+.admin-post-form {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.admin-post-form input,
+.admin-post-form select,
+.admin-post-form textarea,
+.admin-post-form button {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.55rem 0.68rem;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.admin-post-form button {
+  width: fit-content;
+  border: 0;
+  background: var(--ink);
+  color: #fff;
+  cursor: pointer;
+}
+
+.admin-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: 'Space Grotesk', sans-serif;
+  color: var(--muted);
+}
+
+.admin-post-list {
+  margin-top: 0.8rem;
+}
+
+.admin-post-list h4 {
+  margin: 0 0 0.5rem;
+}
+
+.admin-post-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.admin-post-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  padding: 0.55rem;
+}
+
+.admin-post-list li p {
+  margin: 0.2rem 0 0;
+  color: var(--muted);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.85rem;
 }
 
 .admin-quick-links h3 {
@@ -1278,6 +1499,55 @@ blockquote {
 .admin-quick-links a:hover {
   border-color: #2f8de0;
   color: #2f8de0;
+}
+
+.admin-settings {
+  margin-top: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  padding: 0.9rem;
+}
+
+.admin-settings h3 {
+  margin: 0 0 0.7rem;
+}
+
+.admin-settings-form {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.admin-settings-form label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.admin-settings-form input,
+.admin-settings-form textarea,
+.admin-settings-form button {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.55rem 0.68rem;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.admin-settings-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.admin-settings-actions button {
+  border: 0;
+  background: var(--ink);
+  color: #fff;
+  cursor: pointer;
+}
+
+.admin-settings-actions .btn-secondary {
+  background: #6d6d6d;
 }
 
 /* ── Responsive ─────────────────────────────────────────────── */
@@ -1316,6 +1586,10 @@ blockquote {
 
   .admin-metrics {
     grid-template-columns: 1fr;
+  }
+
+  .admin-categories-form input {
+    min-width: 100%;
   }
 }
 

@@ -1,11 +1,36 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { tickerItems, categories } from '../data/feed'
+
+const SETTINGS_STORAGE_KEY = 'worldnews-admin-settings'
+const DEFAULT_SITE_NAME = 'World Gist News'
 
 export default function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [siteName, setSiteName] = useState(DEFAULT_SITE_NAME)
   const navigate = useNavigate()
+
+  useEffect(() => {
+    const syncSettings = () => {
+      try {
+        const saved = localStorage.getItem(SETTINGS_STORAGE_KEY)
+        if (!saved) {
+          setSiteName(DEFAULT_SITE_NAME)
+          return
+        }
+
+        const parsed = JSON.parse(saved)
+        setSiteName(parsed?.siteName?.trim() || DEFAULT_SITE_NAME)
+      } catch {
+        setSiteName(DEFAULT_SITE_NAME)
+      }
+    }
+
+    syncSettings()
+    window.addEventListener('storage', syncSettings)
+    return () => window.removeEventListener('storage', syncSettings)
+  }, [])
 
   const closeMenu = () => setMenuOpen(false)
 
@@ -37,9 +62,9 @@ export default function SiteHeader() {
           <span aria-hidden="true">☰</span>
         </button>
 
-        <Link className="brand" to="/" aria-label="World Gist News home">
-          <img className="brand-mark" src="/logo.png" alt="World Gist News logo" />
-          <span className="brand-text">World Gist News</span>
+        <Link className="brand" to="/" aria-label={`${siteName} home`}>
+          <img className="brand-mark" src="/logo.png" alt={`${siteName} logo`} />
+          <span className="brand-text">{siteName}</span>
         </Link>
 
         <form className="header-search-form" onSubmit={submitSearch} role="search" aria-label="Search news">
