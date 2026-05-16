@@ -10,6 +10,10 @@ import {
   SETTINGS_STORAGE_KEY,
   normalizeStoredPosts,
 } from '../admin/storage'
+import { mapNewsPostRow } from './newsPostsApi'
+import { fetchCategoriesFromDatabase } from './adminCategoriesApi'
+import { fetchAdminSiteSettingsFromDatabase } from './adminSiteSettingsApi'
+import { fetchSocialMediaLinksFromDatabase } from './socialMediaApi'
 import {
   isCmsPostPubliclyVisible,
   mergePublicArticleLists,
@@ -41,10 +45,10 @@ function applyConfigRow(row) {
     localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(cats))
   }
   if (row.profile && typeof row.profile === 'object') {
-    localStorage.setItem(
-      PROFILE_STORAGE_KEY,
-      JSON.stringify({ ...DEFAULT_PROFILE, ...row.profile }),
-    )
+    const legacy = { ...DEFAULT_PROFILE, ...row.profile }
+    if (!localStorage.getItem(PROFILE_STORAGE_KEY)) {
+      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(legacy))
+    }
   }
 }
 
@@ -52,6 +56,11 @@ function normalizeCmsPayloads(postRows) {
   if (!postRows?.length) return []
   const payloads = postRows.map((r) => r.payload).filter(Boolean)
   return normalizeStoredPosts(payloads).filter(isCmsPostPubliclyVisible)
+}
+
+function normalizeNewsPostRows(rows) {
+  if (!rows?.length) return []
+  return normalizeStoredPosts(rows.map(mapNewsPostRow).filter(Boolean))
 }
 
 /**
@@ -63,29 +72,60 @@ async function fetchPublicFeedFromDatabase() {
     return { articles: mergePublicArticleLists([]), fromDatabase: false }
   }
 
-  const [configRes, postsRes] = await Promise.all([
+  const [configRes, siteSettingsRes, categoriesRes, postsRes, legacyRes, socialRes] = await Promise.all([
     supabase
       .from('cms_config')
       .select('settings, categories, profile, updated_at')
       .eq('id', 'primary')
       .maybeSingle(),
+    fetchAdminSiteSettingsFromDatabase(),
+    fetchCategoriesFromDatabase(),
+    supabase
+      .from('news_posts')
+      .select(
+        'id, title, category, summary, body, body_html, author, image_url, read_time, display_date, status, featured, scheduled_for, published_at, updated_at',
+      )
+      .order('updated_at', { ascending: false }),
     supabase
       .from('cms_posts')
       .select('id, payload, updated_at')
       .order('updated_at', { ascending: false }),
+    fetchSocialMediaLinksFromDatabase(),
   ])
 
   if (configRes.error) {
     console.warn('cms_config public fetch:', configRes.error.message)
-  } else {
-    applyConfigRow(configRes.data)
+  } else if (!(categoriesRes.fromDatabase && categoriesRes.categories?.length)) {
+    if (siteSettingsRes.fromDatabase && siteSettingsRes.settings) {
+      const cats = mergeCategoriesFromRemote(configRes.data?.categories)
+      if (cats) {
+        localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(cats))
+      }
+    } else {
+      applyConfigRow(configRes.data)
+    }
+  }
+
+  if (!configRes.error && configRes.data?.profile && typeof configRes.data.profile === 'object') {
+    const legacy = { ...DEFAULT_PROFILE, ...configRes.data.profile }
+    if (!localStorage.getItem(PROFILE_STORAGE_KEY)) {
+      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(legacy))
+    }
   }
 
   let cmsArticles = []
   if (postsRes.error) {
-    console.warn('cms_posts public fetch:', postsRes.error.message)
+    console.warn('news_posts fetch:', postsRes.error.message)
+    if (!legacyRes.error && legacyRes.data?.length) {
+      cmsArticles = normalizeCmsPayloads(legacyRes.data)
+    }
   } else if (postsRes.data?.length) {
-    cmsArticles = normalizeCmsPayloads(postsRes.data)
+    cmsArticles = normalizeNewsPostRows(postsRes.data)
+  } else if (!legacyRes.error && legacyRes.data?.length) {
+    cmsArticles = normalizeCmsPayloads(legacyRes.data)
+  }
+
+  if (cmsArticles.length) {
     localStorage.setItem(POST_STORAGE_KEY, JSON.stringify(cmsArticles))
   }
 

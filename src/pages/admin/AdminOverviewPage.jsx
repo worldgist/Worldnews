@@ -1,136 +1,256 @@
-import { useEffect, useState } from 'react'
-import { articles } from '../../data/feed'
-import { loadCategories, loadPosts } from '../../admin/storage'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { CMS_SYNC_EVENT } from '../../lib/cmsEvents'
+import { fetchAdminOverviewStats } from '../../lib/adminOverviewApi'
+import { loadPublicFormLogMerged } from '../../utils/publicForms'
 
-function toKpi(value) {
-  if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`
-  if (value >= 1000) return `${(value / 1000).toFixed(1)}K`
-  return `${value}`
+function formatWhen(iso) {
+  if (!iso) return '—'
+  const value = new Date(iso)
+  if (Number.isNaN(value.getTime())) return '—'
+  return value.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+}
+
+function statusLabel(post) {
+  const status = post.status || 'published'
+  if (status === 'scheduled') {
+    const at = Date.parse(post.scheduledFor || '')
+    if (Number.isFinite(at) && at <= Date.now()) return 'Due'
+    return 'Scheduled'
+  }
+  if (status === 'draft') return 'Draft'
+  return 'Published'
 }
 
 export default function AdminOverviewPage() {
-  const [managedCategories, setManagedCategories] = useState(loadCategories())
-  const [adminPosts, setAdminPosts] = useState(loadPosts())
+  const [stats, setStats] = useState(null)
+  const [recentForms, setRecentForms] = useState([])
+  const [initialLoading, setInitialLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const refreshTimerRef = useRef(null)
+  const mountedRef = useRef(true)
 
-  useEffect(() => {
-    const sync = () => {
-      setManagedCategories(loadCategories())
-      setAdminPosts(loadPosts())
+  const refresh = useCallback(async (options = {}) => {
+    const { showInitialLoader = false } = options
+
+    if (showInitialLoader) {
+      setInitialLoading(true)
+    } else {
+      setRefreshing(true)
     }
-    window.addEventListener('storage', sync)
-    return () => window.removeEventListener('storage', sync)
+
+    const [overview, forms] = await Promise.all([
+      fetchAdminOverviewStats(),
+      loadPublicFormLogMerged(),
+    ])
+
+    if (!mountedRef.current) return
+
+    setStats(overview)
+    setRecentForms(forms.slice(0, 5))
+    setInitialLoading(false)
+    setRefreshing(false)
   }, [])
 
-  const allPosts = [...adminPosts, ...articles]
-  const featuredCount = allPosts.filter((story) => story.featured).length
-  const totalPosts = allPosts.length
-  const estimatedPageViews = totalPosts * 1260 + managedCategories.length * 290
-  const uniqueVisitors = Math.round(estimatedPageViews * 0.38)
-  const avgEngagement = Math.min(8.7, 2.2 + totalPosts * 0.04).toFixed(1)
-  const bounceRate = Math.max(29, 61 - totalPosts * 0.15).toFixed(1)
+  const scheduleRefresh = useCallback(() => {
+    if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current)
+    refreshTimerRef.current = setTimeout(() => {
+      refreshTimerRef.current = null
+      void refresh({ showInitialLoader: false })
+    }, 400)
+  }, [refresh])
 
-  const categoryMap = allPosts.reduce((acc, post) => {
-    const key = post.category || 'Uncategorized'
-    acc[key] = (acc[key] || 0) + 1
-    return acc
-  }, {})
+  useEffect(() => {
+    mountedRef.current = true
+    void refresh({ showInitialLoader: true })
 
-  const topCategories = Object.entries(categoryMap)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5)
+    const onCmsSync = () => scheduleRefresh()
 
-  const trafficTrend = [
-    { label: 'Mon', views: Math.round(estimatedPageViews * 0.11) },
-    { label: 'Tue', views: Math.round(estimatedPageViews * 0.13) },
-    { label: 'Wed', views: Math.round(estimatedPageViews * 0.14) },
-    { label: 'Thu', views: Math.round(estimatedPageViews * 0.15) },
-    { label: 'Fri', views: Math.round(estimatedPageViews * 0.17) },
-    { label: 'Sat', views: Math.round(estimatedPageViews * 0.16) },
-    { label: 'Sun', views: Math.round(estimatedPageViews * 0.14) },
-  ]
+    window.addEventListener(CMS_SYNC_EVENT, onCmsSync)
 
-  const maxViews = Math.max(...trafficTrend.map((d) => d.views), 1)
-
-  const topPosts = allPosts.slice(0, 5).map((post) => {
-    const score = (post.featured ? 1.4 : 1) * (post.summary?.length || 140)
-    return {
-      id: post.id,
-      title: post.title,
-      category: post.category,
-      views: Math.round(score * 8 + 800),
+    return () => {
+      mountedRef.current = false
+      if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current)
+      window.removeEventListener(CMS_SYNC_EVENT, onCmsSync)
     }
-  })
+  }, [refresh, scheduleRefresh])
+
+  const maxCategoryCount = useMemo(() => {
+    if (!stats?.categoryBreakdown?.length) return 1
+    return Math.max(...stats.categoryBreakdown.map(([, count]) => count), 1)
+  }, [stats])
+
+  if (initialLoading || !stats) {
+    return (
+      <section className="admin-panel-card admin-analytics" aria-label="Dashboard overview">
+        <p className="page-empty">Loading site overview…</p>
+      </section>
+    )
+  }
+
+  const { totals, siteName, siteTagline, contactEmail, fromDatabase } = stats
 
   return (
-    <section className="admin-panel-card admin-analytics" aria-label="Dashboard metrics">
-      <h2>Website Analytics</h2>
+    <section className="admin-panel-card admin-analytics" aria-label="Dashboard overview">
+      <div className="admin-overview-head">
+        <div>
+          <h2>{siteName} — Overview</h2>
+          {siteTagline ? <p className="admin-overview-tagline">{siteTagline}</p> : null}
+          <p className="admin-overview-meta">
+            {fromDatabase ? 'Live counts from Supabase' : 'Counts from local editor cache'}
+            {contactEmail ? ` · ${contactEmail}` : ''}
+            {refreshing ? ' · Updating…' : ''}
+          </p>
+        </div>
+        <button
+          type="button"
+          className="btn-secondary"
+          disabled={refreshing}
+          onClick={() => void refresh({ showInitialLoader: false })}
+        >
+          {refreshing ? 'Refreshing…' : 'Refresh'}
+        </button>
+      </div>
+
+      <h3 className="admin-overview-section-title">Content</h3>
       <div className="admin-metrics">
         <article>
-          <h2>{toKpi(estimatedPageViews)}</h2>
-          <p>Total Page Views</p>
+          <h2>{totals.published}</h2>
+          <p>Published stories</p>
         </article>
         <article>
-          <h2>{toKpi(uniqueVisitors)}</h2>
-          <p>Unique Visitors</p>
+          <h2>{totals.scheduled}</h2>
+          <p>Scheduled posts</p>
         </article>
         <article>
-          <h2>{avgEngagement}m</h2>
-          <p>Avg Engagement Time</p>
+          <h2>{totals.draft}</h2>
+          <p>Drafts</p>
         </article>
         <article>
-          <h2>{bounceRate}%</h2>
-          <p>Bounce Rate</p>
+          <h2>{totals.posts}</h2>
+          <p>Total in CMS</p>
         </article>
         <article>
-          <h2>{managedCategories.length}</h2>
-          <p>Active Categories</p>
+          <h2>{totals.featured}</h2>
+          <p>Featured stories</p>
         </article>
         <article>
-          <h2>{featuredCount}</h2>
-          <p>Featured Stories</p>
+          <h2>{totals.categories}</h2>
+          <p>Active categories</p>
+        </article>
+      </div>
+
+      <h3 className="admin-overview-section-title">Audience & inbox</h3>
+      <div className="admin-metrics admin-metrics--secondary">
+        <article>
+          <h2>{totals.newsletterSubscribers}</h2>
+          <p>Newsletter subscribers</p>
+        </article>
+        <article>
+          <h2>{totals.formSubmissions}</h2>
+          <p>Form submissions</p>
+        </article>
+        <article>
+          <h2>{totals.comments}</h2>
+          <p>Article comments</p>
+        </article>
+        <article>
+          <h2>{totals.scheduledQueue}</h2>
+          <p>Publish queue</p>
+        </article>
+        <article className={totals.overdueScheduled > 0 ? 'admin-metric--alert' : ''}>
+          <h2>{totals.overdueScheduled}</h2>
+          <p>Due / overdue</p>
         </article>
       </div>
 
       <div className="admin-analytics-grid">
         <article className="admin-analytics-card">
-          <h3>Weekly Traffic Trend</h3>
-          <ul className="analytics-bars">
-            {trafficTrend.map((day) => (
-              <li key={day.label}>
-                <span>{day.label}</span>
-                <div>
-                  <i style={{ width: `${(day.views / maxViews) * 100}%` }} />
-                </div>
-                <strong>{toKpi(day.views)}</strong>
-              </li>
-            ))}
-          </ul>
+          <h3>Stories by category</h3>
+          {stats.categoryBreakdown.length === 0 ? (
+            <p className="post-media-empty">No posts yet.</p>
+          ) : (
+            <ul className="analytics-bars">
+              {stats.categoryBreakdown.slice(0, 8).map(([name, count]) => (
+                <li key={name}>
+                  <span>{name}</span>
+                  <div>
+                    <i style={{ width: `${(count / maxCategoryCount) * 100}%` }} />
+                  </div>
+                  <strong>{count}</strong>
+                </li>
+              ))}
+            </ul>
+          )}
         </article>
 
         <article className="admin-analytics-card">
-          <h3>Top Categories</h3>
-          <ul className="analytics-list">
-            {topCategories.map(([name, count]) => (
-              <li key={name}>
-                <span>{name}</span>
-                <strong>{count} posts</strong>
-              </li>
-            ))}
+          <h3>Quick actions</h3>
+          <ul className="admin-overview-links">
+            <li>
+              <Link to="/admin/posts">News Post Editor</Link>
+            </li>
+            <li>
+              <Link to="/admin/scheduled-posts">Scheduled Posts</Link>
+            </li>
+            <li>
+              <Link to="/admin/add-category">Add Category</Link>
+            </li>
+            <li>
+              <Link to="/admin/form-inbox">Form Inbox</Link>
+            </li>
+            <li>
+              <Link to="/admin/newsletter">Newsletter</Link>
+            </li>
+            <li>
+              <Link to="/">View live site</Link>
+            </li>
           </ul>
         </article>
 
         <article className="admin-analytics-card analytics-span-2">
-          <h3>Top Performing Posts</h3>
+          <h3>Recent stories</h3>
           <ul className="analytics-list analytics-posts">
-            {topPosts.map((post) => (
-              <li key={post.id}>
-                <span>{post.title}</span>
-                <small>{post.category}</small>
-                <strong>{toKpi(post.views)} views</strong>
+            {stats.recentPosts.length === 0 ? (
+              <li>
+                <span>No posts in the CMS yet.</span>
               </li>
-            ))}
+            ) : (
+              stats.recentPosts.map((post) => (
+                <li key={post.id}>
+                  <span>{post.title}</span>
+                  <small>
+                    {post.category} · {statusLabel(post)}
+                    {post.scheduledFor ? ` · ${formatWhen(post.scheduledFor)}` : ''}
+                    {post.publishedAt ? ` · ${formatWhen(post.publishedAt)}` : ''}
+                  </small>
+                </li>
+              ))
+            )}
           </ul>
         </article>
+
+        {recentForms.length > 0 ? (
+          <article className="admin-analytics-card analytics-span-2">
+            <h3>Latest form submissions</h3>
+            <ul className="analytics-list analytics-posts">
+              {recentForms.map((entry) => (
+                <li key={entry.id}>
+                  <span>{entry.type}</span>
+                  <small>{formatWhen(entry.at)}</small>
+                </li>
+              ))}
+            </ul>
+            <Link className="read-more" to="/admin/form-inbox">
+              Open form inbox
+            </Link>
+          </article>
+        ) : null}
       </div>
     </section>
   )

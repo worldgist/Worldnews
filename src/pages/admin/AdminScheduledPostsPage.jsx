@@ -1,5 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { loadPosts, savePosts } from '../../admin/storage'
+import { CMS_SYNC_EVENT } from '../../lib/cmsEvents'
+import {
+  deleteScheduledQueueRows,
+  fetchScheduledQueueFromDatabase,
+  markScheduledQueuePublished,
+  syncScheduledQueueFromPosts,
+  upsertScheduledQueueRow,
+} from '../../lib/scheduledPostsApi'
+import { supabase } from '../../lib/supabaseClient'
 
 function formatDateLabel(dateValue) {
   return dateValue.toLocaleDateString('en-US', {
@@ -58,15 +67,27 @@ function getScheduledPosts() {
 
 export default function AdminScheduledPostsPage() {
   const [scheduledPosts, setScheduledPosts] = useState(getScheduledPosts)
+  const [loading, setLoading] = useState(Boolean(supabase))
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [selectedPostIds, setSelectedPostIds] = useState([])
   const [rescheduleDraft, setRescheduleDraft] = useState({})
 
   const refresh = () => {
-    const posts = getScheduledPosts()
-    setScheduledPosts(posts)
-    setSelectedPostIds((prev) => prev.filter((id) => posts.some((post) => post.id === id)))
+    if (!supabase) {
+      const posts = getScheduledPosts()
+      setScheduledPosts(posts)
+      setSelectedPostIds((prev) => prev.filter((id) => posts.some((post) => post.id === id)))
+      setLoading(false)
+      return
+    }
+
+    void fetchScheduledQueueFromDatabase().then(({ posts, fromDatabase }) => {
+      const nextPosts = fromDatabase ? posts : getScheduledPosts()
+      setScheduledPosts(nextPosts)
+      setSelectedPostIds((prev) => prev.filter((id) => nextPosts.some((post) => post.id === id)))
+      setLoading(false)
+    })
   }
 
   const categoryOptions = useMemo(() => {
@@ -103,13 +124,24 @@ export default function AdminScheduledPostsPage() {
   }, [scheduledPosts, filteredPosts])
 
   useEffect(() => {
+    refresh()
     const sync = () => refresh()
     window.addEventListener('storage', sync)
-    return () => window.removeEventListener('storage', sync)
+    window.addEventListener('worldnews-admin-storage', sync)
+    window.addEventListener(CMS_SYNC_EVENT, sync)
+    return () => {
+      window.removeEventListener('storage', sync)
+      window.removeEventListener('worldnews-admin-storage', sync)
+      window.removeEventListener(CMS_SYNC_EVENT, sync)
+    }
   }, [])
 
-  const handlePublishNow = (postId) => {
+  const handlePublishNow = async (postId) => {
     const publishDate = new Date()
+    if (supabase) {
+      await markScheduledQueuePublished([postId], publishDate)
+    }
+
     const nextPosts = loadPosts().map((post) => {
       if (post.id !== postId) return post
       return {
@@ -125,10 +157,14 @@ export default function AdminScheduledPostsPage() {
     refresh()
   }
 
-  const handlePublishSelected = () => {
+  const handlePublishSelected = async () => {
     if (selectedPostIds.length === 0) return
     const publishDate = new Date()
     const selectedSet = new Set(selectedPostIds)
+
+    if (supabase) {
+      await markScheduledQueuePublished([...selectedSet], publishDate)
+    }
 
     const nextPosts = loadPosts().map((post) => {
       if (!selectedSet.has(post.id)) return post
@@ -146,15 +182,21 @@ export default function AdminScheduledPostsPage() {
     refresh()
   }
 
-  const handleDelete = (postId) => {
+  const handleDelete = async (postId) => {
+    if (supabase) {
+      await deleteScheduledQueueRows([postId])
+    }
     const nextPosts = loadPosts().filter((post) => post.id !== postId)
     savePosts(nextPosts)
     refresh()
   }
 
-  const handleDeleteSelected = () => {
+  const handleDeleteSelected = async () => {
     if (selectedPostIds.length === 0) return
     const selectedSet = new Set(selectedPostIds)
+    if (supabase) {
+      await deleteScheduledQueueRows([...selectedSet])
+    }
     const nextPosts = loadPosts().filter((post) => !selectedSet.has(post.id))
     savePosts(nextPosts)
     setSelectedPostIds([])
@@ -182,7 +224,7 @@ export default function AdminScheduledPostsPage() {
     })
   }
 
-  const handleReschedule = (postId) => {
+  const handleReschedule = async (postId) => {
     const draftValue = rescheduleDraft[postId]
     if (!draftValue) return
 
@@ -190,6 +232,10 @@ export default function AdminScheduledPostsPage() {
     if (Number.isNaN(nextDate.getTime()) || nextDate.getTime() <= Date.now()) {
       alert('Please choose a future date and time for rescheduling.')
       return
+    }
+
+    if (supabase) {
+      await upsertScheduledQueueRow({ postId, publishAt: nextDate.toISOString() })
     }
 
     const nextPosts = loadPosts().map((post) => {
@@ -203,21 +249,24 @@ export default function AdminScheduledPostsPage() {
     })
 
     savePosts(nextPosts)
+    if (supabase) {
+      await syncScheduledQueueFromPosts(nextPosts)
+    }
     setRescheduleDraft((prev) => ({ ...prev, [postId]: '' }))
     refresh()
   }
 
-  const handlePublishDueNow = () => {
+  const handlePublishDueNow = async () => {
     const now = Date.now()
     const publishDate = new Date()
-    let changed = false
+    const dueIds = []
 
     const nextPosts = loadPosts().map((post) => {
       if ((post.status || 'published') !== 'scheduled') return post
       const scheduledTime = Date.parse(post.scheduledFor || '')
       if (!Number.isFinite(scheduledTime) || scheduledTime > now) return post
 
-      changed = true
+      dueIds.push(post.id)
       return {
         ...post,
         status: 'published',
@@ -227,9 +276,13 @@ export default function AdminScheduledPostsPage() {
       }
     })
 
-    if (!changed) {
+    if (dueIds.length === 0) {
       alert('No queued posts are due for publish yet.')
       return
+    }
+
+    if (supabase) {
+      await markScheduledQueuePublished(dueIds, publishDate)
     }
 
     savePosts(nextPosts)
@@ -267,6 +320,8 @@ export default function AdminScheduledPostsPage() {
           <span>Next Publish</span>
         </article>
       </div>
+
+      {loading ? <p className="page-empty">Loading scheduled queue…</p> : null}
 
       <div className="scheduled-queue-controls">
         <input

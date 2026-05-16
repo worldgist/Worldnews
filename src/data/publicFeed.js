@@ -91,8 +91,10 @@ export function getPublicArticleById(id, articleList) {
 }
 
 export function getPublicByCategory(category, articleList) {
+  const needle = String(category || '').toLowerCase()
+  if (!needle) return []
   return getAllArticles(articleList).filter(
-    (a) => a.category.toLowerCase() === String(category).toLowerCase(),
+    (a) => (a.category || '').toLowerCase() === needle,
   )
 }
 
@@ -116,7 +118,7 @@ export function getPublicFeatured(articleList) {
 export function getPublicTickerLines(limit = 8, articleList) {
   return getAllArticles(articleList)
     .slice(0, limit)
-    .map((a) => `${a.category}: ${a.title}`)
+    .map((a) => `${a.category || 'News'}: ${a.title}`)
 }
 
 /** Sidebar / “most read” list using real article records when available. */

@@ -158,7 +158,7 @@ export default function HomePage() {
             </Link>
             <div className="hero-content">
               <p className="kicker">
-                <Link to={getCategoryPath(featured.category)}>{featured.category}</Link>
+                <Link to={getCategoryPath(featured.category)}>{featured.category || 'News'}</Link>
               </p>
               <h1>
                 <Link to={`/article/${featured.id}`}>{featured.title}</Link>

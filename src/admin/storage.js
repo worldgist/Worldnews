@@ -1,6 +1,5 @@
 import { categories } from '../data/feed'
 
-export const ADMIN_AUTH_KEY = 'worldnews-admin-auth'
 export const CATEGORY_STORAGE_KEY = 'worldnews-admin-categories'
 export const POST_STORAGE_KEY = 'worldnews-admin-posts'
 export const SETTINGS_STORAGE_KEY = 'worldnews-admin-settings'
@@ -32,14 +31,26 @@ export const DEFAULT_SETTINGS = {
 }
 
 export const DEFAULT_PROFILE = {
-  fullName: 'Admin User',
-  email: 'admin@worldgistnews.com',
-  role: 'Editor in Chief',
-  bio: 'Managing editorial quality and publication workflow for World Gist News.',
+  fullName: 'World Gist News Editorial Team',
+  email: 'newsroom@worldgistnews.com',
+  role: 'Managing Editor',
+  bio:
+    'Leads editorial standards, fact-checking, and daily publication workflow for World Gist News. The newsroom covers world affairs, politics, sports, school, technology, and entertainment from Bronx, New York. Reach the desk at newsroom@worldgistnews.com for corrections, partnerships, and publication questions.',
+  avatarUrl: '',
+}
+
+function normalizeCategoryName(item) {
+  if (typeof item === 'string') return item.trim()
+  if (item && typeof item === 'object') {
+    const name = item.name ?? item.label ?? item.category
+    if (typeof name === 'string') return name.trim()
+  }
+  return ''
 }
 
 export function getCategoryPath(category) {
-  const slug = category.toLowerCase().replace(/\s+/g, '-')
+  const label = normalizeCategoryName(category) || 'World'
+  const slug = label.toLowerCase().replace(/\s+/g, '-')
   const dedicatedRoutes = {
     world: '/world-news',
     politics: '/politics-news',
@@ -59,7 +70,7 @@ export function loadCategories() {
     const parsed = JSON.parse(saved)
     if (!Array.isArray(parsed) || parsed.length === 0) return categories
 
-    const merged = [...parsed]
+    const merged = parsed.map(normalizeCategoryName).filter(Boolean)
     categories.forEach((category) => {
       const exists = merged.some((item) => item.toLowerCase() === category.toLowerCase())
       if (!exists) merged.push(category)
@@ -184,8 +195,15 @@ export function loadProfile() {
   }
 }
 
+function scheduleAdminProfilePush() {
+  if (typeof window === 'undefined') return
+  import('../lib/cmsSync.js')
+    .then((m) => m.pushAdminProfileFromStorage())
+    .catch(() => {})
+}
+
 export function saveProfile(nextProfile) {
   localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(nextProfile))
   notifyAdminStorage()
-  scheduleCmsConfigPush()
+  scheduleAdminProfilePush()
 }

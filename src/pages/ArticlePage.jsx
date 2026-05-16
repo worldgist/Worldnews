@@ -7,7 +7,7 @@ import { resolveArticleImage } from '../lib/articleImage'
 import AsidePostList from '../components/AsidePostList'
 import { mostRead } from '../data/feed'
 import { getPublicArticleById, getAllArticles, getPublicLatest } from '../data/publicFeed'
-import { loadSettings } from '../admin/storage'
+import { getCategoryPath, loadSettings } from '../admin/storage'
 import { supabase } from '../lib/supabaseClient'
 import { fetchCommentsForArticle, insertTopLevelComment, insertReply } from '../lib/articleCommentsSupabase'
 import { usePublicFeed } from '../hooks/usePublicFeed'
@@ -350,8 +350,8 @@ export default function ArticlePage() {
     <main className="container story-layout">
       <article className="story-main">
         <p className="kicker">
-          <Link to={`/category/${article.category.toLowerCase()}`}>
-            {article.category}
+          <Link to={getCategoryPath(article.category)}>
+            {article.category || 'News'}
           </Link>
         </p>
         <h1>{article.title}</h1>

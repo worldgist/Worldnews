@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { DEFAULT_PROFILE } from '../admin/storage'
+import CmsImageUploadField from '../components/CmsImageUploadField'
+import { useAdminAuth } from '../context/AdminAuthContext'
 import { articles, categories } from '../data/feed'
 
-const ADMIN_AUTH_KEY = 'worldnews-admin-auth'
 const CATEGORY_STORAGE_KEY = 'worldnews-admin-categories'
 const POST_STORAGE_KEY = 'worldnews-admin-posts'
 const SETTINGS_STORAGE_KEY = 'worldnews-admin-settings'
@@ -14,13 +16,6 @@ const DEFAULT_SETTINGS = {
   siteAddress: '2654 SE 62nd Ave, Bronx, NY 10458, United States',
   contactEmail: 'newsroom@worldgistnews.com',
   copyrightText: '(c) 2026 World Gist News.',
-}
-
-const DEFAULT_PROFILE = {
-  fullName: 'Admin User',
-  email: 'admin@worldgistnews.com',
-  role: 'Editor in Chief',
-  bio: 'Managing editorial quality and publication workflow for World Gist News.',
 }
 
 const ADMIN_SECTIONS = [
@@ -48,6 +43,7 @@ function getCategoryPath(category) {
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate()
+  const { signOut } = useAdminAuth()
   const [managedCategories, setManagedCategories] = useState(categories)
   const [newCategory, setNewCategory] = useState('')
   const [editingCategory, setEditingCategory] = useState(null)
@@ -135,8 +131,8 @@ export default function AdminDashboardPage() {
     }
   }, [])
 
-  const handleLogout = () => {
-    localStorage.removeItem(ADMIN_AUTH_KEY)
+  const handleLogout = async () => {
+    await signOut()
     navigate('/admin/login', { replace: true })
   }
 
@@ -511,11 +507,12 @@ export default function AdminDashboardPage() {
                   placeholder="Read time (e.g. 4 min)"
                 />
 
-                <input
-                  type="url"
+                <CmsImageUploadField
+                  label="Featured image"
                   value={postForm.image}
-                  onChange={(e) => handlePostFormChange('image', e.target.value)}
-                  placeholder="Image URL (optional)"
+                  onChange={(url) => handlePostFormChange('image', url)}
+                  variant="post"
+                  hint="Upload to Supabase Storage or paste an external URL."
                 />
 
                 <textarea

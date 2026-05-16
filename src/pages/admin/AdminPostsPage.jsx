@@ -23,7 +23,13 @@ import {
   Undo2,
 } from 'lucide-react'
 import { loadCategories, loadPosts, savePosts } from '../../admin/storage'
-import { uploadCmsMediaFile } from '../../lib/cmsStorage'
+import CmsImageUploadField from '../../components/CmsImageUploadField'
+import { useAdminAuth } from '../../context/AdminAuthContext'
+import {
+  deleteCmsMediaPath,
+  listCmsPostMediaForUser,
+  uploadCmsMediaFile,
+} from '../../lib/cmsStorage'
 import 'quill/dist/quill.snow.css'
 
 const DRAFT_STORAGE_KEY = 'worldnews-admin-editor-draft'
@@ -139,8 +145,11 @@ export default function AdminPostsPage() {
     () => localStorage.getItem(THEME_STORAGE_KEY) || 'light',
   )
   const [editorHTML, setEditorHTML] = useState('<p></p>')
+  const [coverImageUrl, setCoverImageUrl] = useState('')
   const [mediaItems, setMediaItems] = useState([])
+  const [storageMediaLoading, setStorageMediaLoading] = useState(false)
   const [lastSavedAt, setLastSavedAt] = useState(null)
+  const { isAuthenticated } = useAdminAuth()
 
   const editorNodeRef = useRef(null)
   const quillRef = useRef(null)
@@ -167,10 +176,40 @@ export default function AdminPostsPage() {
       setCategory(draft.category || managedCategories[0] || 'World')
       setAuthor(draft.author || 'worldgistnews')
       setEditorHTML(draft.content || '<p></p>')
+      setCoverImageUrl(draft.coverImageUrl || '')
       setMediaItems(Array.isArray(draft.mediaItems) ? draft.mediaItems : [])
       setLastSavedAt(draft.savedAt ? new Date(draft.savedAt) : null)
     }
   }, [managedCategories])
+
+  useEffect(() => {
+    if (!isAuthenticated) return undefined
+
+    let cancelled = false
+    setStorageMediaLoading(true)
+    void listCmsPostMediaForUser().then(({ items }) => {
+      if (cancelled) return
+      if (items.length) {
+        setMediaItems((prev) => {
+          const seen = new Set(prev.map((item) => item.storagePath || item.src))
+          const merged = [...prev]
+          for (const item of items) {
+            const key = item.storagePath || item.src
+            if (!seen.has(key)) {
+              seen.add(key)
+              merged.push(item)
+            }
+          }
+          return merged
+        })
+      }
+      setStorageMediaLoading(false)
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [isAuthenticated])
 
   useEffect(() => {
     if (!editorNodeRef.current || quillRef.current) return
@@ -204,6 +243,7 @@ export default function AdminPostsPage() {
         category,
         author,
         content: editorHTML,
+        coverImageUrl,
         mediaItems,
         savedAt: new Date().toISOString(),
       }
@@ -212,7 +252,7 @@ export default function AdminPostsPage() {
     }, 700)
 
     return () => clearTimeout(timeout)
-  }, [title, category, author, editorHTML, mediaItems, autosaveEnabled])
+  }, [title, category, author, editorHTML, coverImageUrl, mediaItems, autosaveEnabled])
 
   useEffect(() => {
     localStorage.setItem(THEME_STORAGE_KEY, themeMode)
@@ -363,8 +403,20 @@ export default function AdminPostsPage() {
     quillRef.current.setSelection(index + 1)
   }
 
-  const removeMediaItem = (mediaId) => {
+  const removeMediaItem = async (mediaId) => {
+    const target = mediaItems.find((item) => item.id === mediaId)
+    if (target?.storagePath) {
+      await deleteCmsMediaPath(target.storagePath)
+    }
+    if (coverImageUrl && target?.src === coverImageUrl) {
+      setCoverImageUrl('')
+    }
     setMediaItems((prev) => prev.filter((item) => item.id !== mediaId))
+  }
+
+  const setCoverFromMedia = (item) => {
+    if (item.type !== 'image') return
+    setCoverImageUrl(item.src)
   }
 
   const toggleHTMLMode = () => {
@@ -439,7 +491,11 @@ export default function AdminPostsPage() {
       author: author.trim() || 'worldgistnews',
       date: formatDateLabel(publishDate),
       readTime: estimateReadTime(plain),
-      image: firstImageSrcFromHtml(clean) || DEFAULT_POST_IMAGE,
+      image:
+        coverImageUrl.trim()
+        || firstImageSrcFromHtml(clean)
+        || mediaItems.find((item) => item.type === 'image')?.src
+        || DEFAULT_POST_IMAGE,
       featured: false,
       htmlContent: clean,
       status: isScheduled ? 'scheduled' : 'published',
@@ -643,6 +699,14 @@ export default function AdminPostsPage() {
         )}
       </AnimatePresence>
 
+      <CmsImageUploadField
+        label="Cover image (card thumbnail)"
+        value={coverImageUrl}
+        onChange={setCoverImageUrl}
+        variant="post"
+        hint="Used on the homepage and category cards. Uploads go to Supabase Storage (cms-media bucket)."
+      />
+
       <div className="post-editor-meta-row">
         <select value={category} onChange={(event) => setCategory(event.target.value)}>
           {managedCategories.map((item) => (
@@ -699,7 +763,10 @@ export default function AdminPostsPage() {
       <section className="post-media-library" aria-label="Uploaded media">
         <div className="post-media-library-head">
           <h4>Media Uploads ({mediaItems.length})</h4>
-          <p>Upload images or videos: signed-in editors send files to Supabase Storage; otherwise they stay embedded in the draft only.</p>
+          <p>
+            Images and videos upload to <strong>Supabase Storage</strong> (<code>cms-media</code>) when you are signed in.
+            {storageMediaLoading ? ' Loading your cloud library…' : null}
+          </p>
         </div>
         {mediaItems.length === 0 ? (
           <p className="post-media-empty">No media uploaded yet.</p>
@@ -717,10 +784,15 @@ export default function AdminPostsPage() {
                 <p>{item.name}</p>
                 <small>{item.type.toUpperCase()} | {(item.size / (1024 * 1024)).toFixed(2)}MB</small>
                 <div className="admin-post-item-actions">
+                  {item.type === 'image' ? (
+                    <button type="button" onClick={() => setCoverFromMedia(item)}>
+                      Set cover
+                    </button>
+                  ) : null}
                   <button type="button" onClick={() => insertMediaIntoEditor(item)}>
                     Insert
                   </button>
-                  <button type="button" className="btn-danger" onClick={() => removeMediaItem(item.id)}>
+                  <button type="button" className="btn-danger" onClick={() => void removeMediaItem(item.id)}>
                     Remove
                   </button>
                 </div>

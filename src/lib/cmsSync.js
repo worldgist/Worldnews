@@ -1,6 +1,19 @@
 import { supabase } from './supabaseClient'
 import { categories as feedCategories } from '../data/feed'
 import { CMS_SYNC_EVENT } from './cmsEvents'
+import { fetchAdminProfileFromDatabase, upsertAdminProfileToDatabase } from './adminProfileApi'
+import { deleteNewsPostsFromDatabase, upsertNewsPostsToDatabase } from './newsPostsApi'
+import { syncScheduledQueueFromPosts } from './scheduledPostsApi'
+import { fetchCategoriesFromDatabase, syncCategoriesFromNames } from './adminCategoriesApi'
+import {
+  fetchAdminSiteSettingsFromDatabase,
+  pickSiteSettings,
+  upsertAdminSiteSettingsToDatabase,
+} from './adminSiteSettingsApi'
+import {
+  fetchSocialMediaLinksFromDatabase,
+  syncSocialMediaLinksFromSettings,
+} from './socialMediaApi'
 import { loadPublicFeedFromDatabase } from './cmsPublicApi'
 import {
   CATEGORY_STORAGE_KEY,
@@ -41,7 +54,13 @@ export async function pullCmsSnapshot() {
 
   suppressNextRemotePush = true
   try {
-    await loadPublicFeedFromDatabase()
+    await Promise.all([
+      loadPublicFeedFromDatabase(),
+      fetchAdminProfileFromDatabase(),
+      fetchAdminSiteSettingsFromDatabase(),
+      fetchSocialMediaLinksFromDatabase(),
+      fetchCategoriesFromDatabase(),
+    ])
     notifyCmsSynced()
   } finally {
     suppressNextRemotePush = false
@@ -58,7 +77,19 @@ export async function syncLocalCmsToCloud() {
 
   await pushCmsConfigFromStorage()
   await pushCmsPostsFromStorage()
+  await pushAdminProfileFromStorage()
   await pullCmsSnapshot()
+}
+
+export async function pushAdminProfileFromStorage() {
+  if (!supabase || suppressNextRemotePush) return
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+  if (!session) return
+
+  const profile = JSON.parse(localStorage.getItem(PROFILE_STORAGE_KEY) || 'null') || DEFAULT_PROFILE
+  await upsertAdminProfileToDatabase({ ...DEFAULT_PROFILE, ...profile })
 }
 
 export async function pushCmsConfigFromStorage() {
@@ -73,20 +104,26 @@ export async function pushCmsConfigFromStorage() {
   const categorySeed =
     Array.isArray(categoriesRaw) && categoriesRaw.length > 0 ? categoriesRaw : [...feedCategories]
   const categories = mergeCategoriesFromRemote(categorySeed) || [...feedCategories]
-  const profile = JSON.parse(localStorage.getItem(PROFILE_STORAGE_KEY) || 'null') || DEFAULT_PROFILE
-
   const { error } = await supabase.from('cms_config').upsert(
     {
       id: 'primary',
-      settings: { ...DEFAULT_SETTINGS, ...settings },
+      settings: { ...DEFAULT_SETTINGS, ...pickSiteSettings(settings), ...settings },
       categories: categories || [],
-      profile: { ...DEFAULT_PROFILE, ...profile },
       updated_at: new Date().toISOString(),
     },
     { onConflict: 'id' },
   )
 
   if (error) console.warn('cms_config push:', error.message)
+
+  const siteResult = await upsertAdminSiteSettingsToDatabase(settings)
+  if (!siteResult.ok) console.warn('admin_site_settings sync:', siteResult.error)
+
+  const socialResult = await syncSocialMediaLinksFromSettings({ ...DEFAULT_SETTINGS, ...settings })
+  if (!socialResult.ok) console.warn('social_media_links sync:', socialResult.error)
+
+  const catResult = await syncCategoriesFromNames(categories)
+  if (!catResult.ok) console.warn('cms_categories sync:', catResult.error)
 }
 
 export function schedulePushCmsConfig() {
@@ -117,28 +154,31 @@ export async function pushCmsPostsFromStorage() {
   const normalized = normalizeStoredPosts(posts)
   const nextIds = new Set(normalized.map((p) => p.id))
 
-  const { data: existing, error: exErr } = await supabase.from('cms_posts').select('id')
+  const { data: existing, error: exErr } = await supabase.from('news_posts').select('id')
   if (exErr) {
-    console.warn('cms_posts list for sync:', exErr.message)
+    console.warn('news_posts list for sync:', exErr.message)
     return
   }
 
   const toDelete = (existing || []).map((r) => r.id).filter((id) => !nextIds.has(id))
   if (toDelete.length) {
-    const { error: delErr } = await supabase.from('cms_posts').delete().in('id', toDelete)
-    if (delErr) console.warn('cms_posts delete:', delErr.message)
+    await deleteNewsPostsFromDatabase(toDelete)
   }
 
   if (normalized.length === 0) return
 
-  const rows = normalized.map((p) => ({
+  const upResult = await upsertNewsPostsToDatabase(normalized)
+  if (!upResult.ok) console.warn('news_posts upsert:', upResult.error)
+
+  const queueResult = await syncScheduledQueueFromPosts(normalized)
+  if (!queueResult.ok) console.warn('scheduled_posts sync:', queueResult.error)
+
+  const legacyRows = normalized.map((p) => ({
     id: p.id,
     payload: p,
     updated_at: new Date().toISOString(),
   }))
-
-  const { error: upErr } = await supabase.from('cms_posts').upsert(rows, { onConflict: 'id' })
-  if (upErr) console.warn('cms_posts upsert:', upErr.message)
+  await supabase.from('cms_posts').upsert(legacyRows, { onConflict: 'id' })
 }
 
 export function schedulePushCmsPosts() {

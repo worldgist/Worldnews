@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { ADMIN_AUTH_KEY } from '../admin/storage'
-import { supabase } from '../lib/supabaseClient'
+import { loadProfile } from '../admin/storage'
+import { useAdminAuth } from '../context/AdminAuthContext'
 
 const ADMIN_MENU = [
   { to: '/admin/overview', label: 'Overview' },
@@ -19,12 +19,13 @@ const ADMIN_MENU = [
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const navigate = useNavigate()
+  const { signOut, user } = useAdminAuth()
+  const profile = loadProfile()
 
   const closeSidebar = () => setSidebarOpen(false)
 
   const handleLogout = async () => {
-    if (supabase) await supabase.auth.signOut()
-    localStorage.removeItem(ADMIN_AUTH_KEY)
+    await signOut()
     navigate('/admin/login', { replace: true })
   }
 
@@ -44,6 +45,10 @@ export default function AdminLayout() {
         <div>
           <p className="kicker">Admin Panel</p>
           <h1>World Gist News Admin</h1>
+          {profile.avatarUrl ? (
+            <img className="admin-topbar-avatar" src={profile.avatarUrl} alt="" />
+          ) : null}
+          {user?.email ? <p className="admin-topbar-user">{user.email}</p> : null}
         </div>
       </header>
 

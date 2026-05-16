@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { articles } from '../../data/feed'
 import { DEFAULT_SETTINGS, loadPosts, loadSettings, saveSettings } from '../../admin/storage'
+import { CMS_SYNC_EVENT } from '../../lib/cmsEvents'
+import {
+  fetchAdminSiteSettingsFromDatabase,
+  pickSiteSettings,
+  upsertAdminSiteSettingsToDatabase,
+} from '../../lib/adminSiteSettingsApi'
 import { supabase } from '../../lib/supabaseClient'
 import {
   fetchAllCommentsGroupedByArticle,
@@ -26,6 +32,9 @@ export default function AdminSettingsPage() {
   const [settings, setSettings] = useState(loadSettings())
   const [commentThreads, setCommentThreads] = useState([])
   const [message, setMessage] = useState('')
+  const [saveError, setSaveError] = useState('')
+  const [loading, setLoading] = useState(Boolean(supabase))
+  const [saving, setSaving] = useState(false)
 
   const titleLookup = useMemo(() => {
     const mergedPosts = [...articles, ...loadPosts()]
@@ -89,6 +98,20 @@ export default function AdminSettingsPage() {
   }
 
   useEffect(() => {
+    if (!supabase) {
+      setLoading(false)
+      refreshCommentThreads()
+      return undefined
+    }
+
+    let cancelled = false
+    void fetchAdminSiteSettingsFromDatabase().then(({ settings: remote }) => {
+      if (cancelled) return
+      if (remote) {
+        setSettings({ ...loadSettings(), ...remote })
+      }
+      setLoading(false)
+    })
     refreshCommentThreads()
 
     const sync = () => {
@@ -97,23 +120,51 @@ export default function AdminSettingsPage() {
     }
 
     window.addEventListener('storage', sync)
-    return () => window.removeEventListener('storage', sync)
+    window.addEventListener(CMS_SYNC_EVENT, sync)
+    window.addEventListener('worldnews-admin-storage', sync)
+    return () => {
+      cancelled = true
+      window.removeEventListener('storage', sync)
+      window.removeEventListener(CMS_SYNC_EVENT, sync)
+      window.removeEventListener('worldnews-admin-storage', sync)
+    }
   }, [titleLookup])
 
   const handleSettingChange = (field, value) => {
     setSettings((prev) => ({ ...prev, [field]: value }))
   }
 
-  const handleSaveSettings = (e) => {
+  const handleSaveSettings = async (e) => {
     e.preventDefault()
-    saveSettings(settings)
+    setSaving(true)
+    setSaveError('')
+    setMessage('')
+
+    const normalized = pickSiteSettings(settings)
+    const fullSettings = { ...loadSettings(), ...normalized }
+    saveSettings(fullSettings)
+    setSettings(fullSettings)
+
+    if (supabase) {
+      const { ok, error } = await upsertAdminSiteSettingsToDatabase(fullSettings)
+      if (!ok) {
+        setSaveError(error || 'Could not save settings to the database.')
+        setSaving(false)
+        return
+      }
+    }
+
+    setSaving(false)
     setMessage('Admin settings saved successfully.')
   }
 
   const handleResetSettings = () => {
-    setSettings(DEFAULT_SETTINGS)
-    saveSettings(DEFAULT_SETTINGS)
-    setMessage('Settings reset to defaults.')
+    const defaults = pickSiteSettings(DEFAULT_SETTINGS)
+    const fullSettings = { ...loadSettings(), ...defaults }
+    setSettings(fullSettings)
+    saveSettings(fullSettings)
+    setMessage('Settings reset to defaults. Save to apply to the live site.')
+    setSaveError('')
   }
 
   const handleDeleteThread = async (thread) => {
@@ -181,6 +232,7 @@ export default function AdminSettingsPage() {
   return (
     <section className="admin-panel-card admin-settings" aria-label="Admin settings">
       <h2>Admin Settings</h2>
+      {loading ? <p className="page-empty">Loading site settings…</p> : null}
       <form className="admin-settings-form" onSubmit={handleSaveSettings}>
         <label htmlFor="siteNameInput">Website Name</label>
         <input id="siteNameInput" type="text" value={settings.siteName} onChange={(e) => handleSettingChange('siteName', e.target.value)} required />
@@ -272,8 +324,12 @@ export default function AdminSettingsPage() {
           . Update legal copy in the site source when needed.
         </p>
         <div className="admin-settings-actions">
-          <button type="submit">Save Settings</button>
-          <button type="button" className="btn-secondary" onClick={handleResetSettings}>Reset Defaults</button>
+          <button type="submit" disabled={saving || loading}>
+            {saving ? 'Saving…' : 'Save Settings'}
+          </button>
+          <button type="button" className="btn-secondary" onClick={handleResetSettings} disabled={saving}>
+            Reset Defaults
+          </button>
         </div>
       </form>
 
@@ -333,7 +389,8 @@ export default function AdminSettingsPage() {
         )}
       </div>
 
-      {message && <p className="admin-auth-hint">{message}</p>}
+      {saveError ? <p className="admin-auth-hint admin-auth-hint--error">{saveError}</p> : null}
+      {message ? <p className="admin-auth-hint">{message}</p> : null}
     </section>
   )
 }

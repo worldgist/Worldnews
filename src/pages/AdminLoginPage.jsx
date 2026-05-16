@@ -1,64 +1,87 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { syncLocalCmsToCloud } from '../lib/cmsSync'
-import { supabase } from '../lib/supabaseClient'
-
-const ADMIN_USER = 'admin'
-const ADMIN_PASS = 'worldnews123'
-const ADMIN_AUTH_KEY = 'worldnews-admin-auth'
+import { useAdminAuth } from '../context/AdminAuthContext'
+import { isSupabaseConfigured, supabase } from '../lib/supabaseClient'
 
 export default function AdminLoginPage() {
-  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
+  const { isAuthenticated, loading } = useAdminAuth()
+
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      const nextPath = location.state?.from?.pathname || '/admin/overview'
+      navigate(nextPath, { replace: true })
+    }
+  }, [isAuthenticated, loading, location.state, navigate])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
 
-    if (supabase) {
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email: username.trim(),
-        password,
-      })
-      if (!authError) {
-        localStorage.setItem(ADMIN_AUTH_KEY, 'true')
-        await syncLocalCmsToCloud()
-        const nextPath = location.state?.from?.pathname || '/admin/overview'
-        navigate(nextPath, { replace: true })
-        return
-      }
+    if (!supabase) {
+      setError('Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.')
+      return
+    }
+
+    setSubmitting(true)
+    const { error: authError } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    })
+    setSubmitting(false)
+
+    if (authError) {
       setError(authError.message || 'Could not sign in. Check email and password.')
       return
     }
 
-    if (username.trim() === ADMIN_USER && password === ADMIN_PASS) {
-      localStorage.setItem(ADMIN_AUTH_KEY, 'true')
-      const nextPath = location.state?.from?.pathname || '/admin/overview'
-      navigate(nextPath, { replace: true })
-      return
-    }
+    const nextPath = location.state?.from?.pathname || '/admin/overview'
+    navigate(nextPath, { replace: true })
+  }
 
-    setError('Invalid login details. Please check your username and password.')
+  if (loading) {
+    return (
+      <main className="container static-page admin-auth-page">
+        <p className="page-empty">Checking session…</p>
+      </main>
+    )
+  }
+
+  if (!isSupabaseConfigured || !supabase) {
+    return (
+      <main className="container static-page admin-auth-page">
+        <p className="kicker">Admin</p>
+        <h1>Admin Login</h1>
+        <p className="admin-auth-error">
+          Supabase Auth is required for admin access. Add your project URL and anon key to the environment.
+        </p>
+        <Link className="read-more" to="/">
+          Back to homepage
+        </Link>
+      </main>
+    )
   }
 
   return (
     <main className="container static-page admin-auth-page">
       <p className="kicker">Admin</p>
       <h1>Admin Login</h1>
-      <p>Sign in to access the World Gist News admin dashboard.</p>
+      <p>Sign in with your Supabase account to access the World Gist News admin dashboard.</p>
 
       <form className="admin-auth-form" onSubmit={handleSubmit}>
-        <label htmlFor="adminUsername">{supabase ? 'Email address' : 'Username'}</label>
+        <label htmlFor="adminEmail">Email address</label>
         <input
-          id="adminUsername"
-          type={supabase ? 'email' : 'text'}
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          placeholder={supabase ? 'you@company.com' : 'Enter username'}
-          autoComplete={supabase ? 'email' : 'username'}
+          id="adminEmail"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@worldgistnews.com"
+          autoComplete="email"
           required
         />
 
@@ -73,21 +96,17 @@ export default function AdminLoginPage() {
           required
         />
 
-        {error && <p className="admin-auth-error">{error}</p>}
+        {error ? <p className="admin-auth-error">{error}</p> : null}
 
-        <button type="submit">Login</button>
+        <button type="submit" disabled={submitting}>
+          {submitting ? 'Signing in…' : 'Sign in'}
+        </button>
       </form>
 
-      {supabase ? (
-        <p className="admin-auth-hint">
-          Use a user from <strong>Supabase → Authentication → Users</strong> (email sign-in). Create one there if you have
-          not already.
-        </p>
-      ) : (
-        <p className="admin-auth-hint">
-          Demo credentials (no Supabase env): <strong>admin</strong> / <strong>worldnews123</strong>
-        </p>
-      )}
+      <p className="admin-auth-hint">
+        Accounts are managed in <strong>Supabase → Authentication → Users</strong>. Create an editor there, then sign in
+        with that email and password.
+      </p>
 
       <Link className="read-more" to="/">
         Back to homepage

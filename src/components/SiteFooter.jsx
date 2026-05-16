@@ -2,13 +2,18 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { DEFAULT_SETTINGS, loadSettings } from '../admin/storage'
 import { CMS_SYNC_EVENT } from '../lib/cmsEvents'
+import { FOOTER_SOCIAL_ICONS, loadCachedSocialLinks } from '../lib/socialMediaApi'
 
 export default function SiteFooter() {
   const [settings, setSettings] = useState(loadSettings())
+  const [socialLinks, setSocialLinks] = useState(() =>
+    loadCachedSocialLinks().filter((link) => link.isEnabled),
+  )
 
   useEffect(() => {
     const syncSettings = () => {
       setSettings(loadSettings())
+      setSocialLinks(loadCachedSocialLinks().filter((link) => link.isEnabled))
     }
 
     syncSettings()
@@ -127,66 +132,19 @@ export default function SiteFooter() {
         <div className="footer-social-block">
           <p className="footer-social-block__label">Connect with us</p>
           <div className="footer-social-row" aria-label="Social media handles">
-            <a
-              className="social-link social-facebook"
-              href={settings.socialFacebook || DEFAULT_SETTINGS.socialFacebook}
-              target="_blank"
-              rel="noreferrer"
-              aria-label={`${siteName} on Facebook`}
-            >
-              <img src="/facebook.png" alt="" aria-hidden="true" />
-              <span className="sr-only">Facebook</span>
-            </a>
-            <a
-              className="social-link social-x"
-              href={settings.socialX || DEFAULT_SETTINGS.socialX}
-              target="_blank"
-              rel="noreferrer"
-              aria-label={`${siteName} on X`}
-            >
-              <img src="/x.png" alt="" aria-hidden="true" />
-              <span className="sr-only">X</span>
-            </a>
-            <a
-              className="social-link social-instagram"
-              href={settings.socialInstagram || DEFAULT_SETTINGS.socialInstagram}
-              target="_blank"
-              rel="noreferrer"
-              aria-label={`${siteName} on Instagram`}
-            >
-              <img src="/instagram.png" alt="" aria-hidden="true" />
-              <span className="sr-only">Instagram</span>
-            </a>
-            <a
-              className="social-link social-whatsapp"
-              href={settings.socialWhatsapp || DEFAULT_SETTINGS.socialWhatsapp}
-              target="_blank"
-              rel="noreferrer"
-              aria-label={`${siteName} on WhatsApp`}
-            >
-              <img src="/whatsapp.png" alt="" aria-hidden="true" />
-              <span className="sr-only">WhatsApp</span>
-            </a>
-            <a
-              className="social-link social-youtube"
-              href={settings.socialYoutube || DEFAULT_SETTINGS.socialYoutube}
-              target="_blank"
-              rel="noreferrer"
-              aria-label={`${siteName} on YouTube`}
-            >
-              <img src="/youtube.png" alt="" aria-hidden="true" />
-              <span className="sr-only">YouTube</span>
-            </a>
-            <a
-              className="social-link social-tiktok"
-              href={settings.socialTiktok || DEFAULT_SETTINGS.socialTiktok}
-              target="_blank"
-              rel="noreferrer"
-              aria-label={`${siteName} on TikTok`}
-            >
-              <img src="/tiktok.png" alt="" aria-hidden="true" />
-              <span className="sr-only">TikTok</span>
-            </a>
+            {socialLinks.map((link) => (
+              <a
+                key={link.platform}
+                className={`social-link ${link.iconClass}`}
+                href={link.url || settings[link.settingsKey] || link.defaultUrl}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`${siteName} on ${link.label}`}
+              >
+                <img src={FOOTER_SOCIAL_ICONS[link.platform]} alt="" aria-hidden="true" />
+                <span className="sr-only">{link.label}</span>
+              </a>
+            ))}
           </div>
         </div>
 

@@ -34,11 +34,12 @@ import AdminSettingsPage from './pages/admin/AdminSettingsPage'
 import AdminFormInboxPage from './pages/admin/AdminFormInboxPage'
 import AdminNewsletterPage from './pages/admin/AdminNewsletterPage'
 import { supabase } from './lib/supabaseClient'
+import { AdminAuthProvider } from './context/AdminAuthContext'
 import { PublicFeedProvider } from './context/PublicFeedContext'
-import { pullCmsSnapshot, syncLocalCmsToCloud, CMS_SYNC_EVENT } from './lib/cmsSync'
+import { RedirectIfAdminAuthenticated, RequireAdmin } from './components/AdminRouteGuard'
+import { pullCmsSnapshot, CMS_SYNC_EVENT } from './lib/cmsSync'
 import './App.css'
 
-const ADMIN_AUTH_KEY = 'worldnews-admin-auth'
 const SETTINGS_STORAGE_KEY = 'worldnews-admin-settings'
 const DEFAULT_SITE_NAME = 'World Gist News'
 const DEFAULT_SITE_TAGLINE =
@@ -75,21 +76,6 @@ function upsertCanonical(url) {
   link.setAttribute('href', url)
 }
 
-function isAdminAuthenticated() {
-  if (typeof window === 'undefined') return false
-  return localStorage.getItem(ADMIN_AUTH_KEY) === 'true'
-}
-
-function RequireAdmin({ children }) {
-  const location = useLocation()
-
-  if (!isAdminAuthenticated()) {
-    return <Navigate to="/admin/login" replace state={{ from: location }} />
-  }
-
-  return children
-}
-
 export default function App() {
   const location = useLocation()
   const isAdminRoute = location.pathname.startsWith('/admin')
@@ -102,19 +88,6 @@ export default function App() {
   useEffect(() => {
     if (!supabase) return undefined
     void pullCmsSnapshot()
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) localStorage.setItem(ADMIN_AUTH_KEY, 'true')
-    })
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        localStorage.setItem(ADMIN_AUTH_KEY, 'true')
-        void syncLocalCmsToCloud()
-      }
-      if (event === 'SIGNED_OUT') localStorage.removeItem(ADMIN_AUTH_KEY)
-    })
-    return () => subscription.unsubscribe()
   }, [])
 
   useEffect(() => {
@@ -227,6 +200,7 @@ export default function App() {
   }, [location.pathname, location.search])
 
   return (
+    <AdminAuthProvider>
     <PublicFeedProvider>
     <div className="app-shell">
       <div className="page-bg" />
@@ -252,7 +226,9 @@ export default function App() {
         <Route
           path="/admin/login"
           element={
-            isAdminAuthenticated() ? <Navigate to="/admin/overview" replace /> : <AdminLoginPage />
+            <RedirectIfAdminAuthenticated>
+              <AdminLoginPage />
+            </RedirectIfAdminAuthenticated>
           }
         />
         <Route
@@ -281,5 +257,6 @@ export default function App() {
       <Analytics />
     </div>
     </PublicFeedProvider>
+    </AdminAuthProvider>
   )
 }
