@@ -552,6 +552,9 @@ h3 {
 .home-pagination-inline {
   display: flex;
   justify-content: center;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
   margin: 0.2rem 0 1.4rem;
 }
 
@@ -564,6 +567,17 @@ h3 {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 0.9rem;
   cursor: pointer;
+}
+
+.home-pagination-inline button.active {
+  background: var(--ink);
+  color: #fff;
+  border-color: var(--ink);
+}
+
+.home-pagination-inline button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .news-next-tile {
