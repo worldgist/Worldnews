@@ -2516,13 +2516,6 @@ blockquote {
     display: none;
   }
 
-  .split-section,
-  .editorial-band,
-  .three-col,
-  .newsletter,
-  .news-section {
-    display: none;
-  }
 }
 
 @media (max-width: 414px) {
