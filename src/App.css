@@ -14,8 +14,14 @@
   box-sizing: border-box;
 }
 
+html,
+body {
+  overflow-x: hidden;
+}
+
 .app-shell {
   position: relative;
+  overflow-x: hidden;
 }
 
 .page-bg {
@@ -2536,8 +2542,8 @@ blockquote {
 
   .popular-zone {
     border-radius: 0;
-    margin-left: calc(50% - 50vw);
-    margin-right: calc(50% - 50vw);
+    margin-left: 0;
+    margin-right: 0;
     padding: 1.7rem 1.05rem 1.3rem;
   }
 
@@ -2565,8 +2571,8 @@ blockquote {
   }
 
   .site-footer {
-    margin-left: calc(50% - 50vw);
-    margin-right: calc(50% - 50vw);
+    margin-left: 0;
+    margin-right: 0;
     padding-inline: 0.6rem;
   }
 
