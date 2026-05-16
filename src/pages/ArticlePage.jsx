@@ -4,6 +4,8 @@ import NewsCard from '../components/NewsCard'
 import { getById, getLatest, mostRead, articles } from '../data/feed'
 import { loadSettings } from '../admin/storage'
 
+const NEWS_ARTICLE_JSONLD_ID = 'news-article-jsonld'
+
 function commentsStorageKey(articleId) {
   return `worldnews-comments-${articleId}`
 }
@@ -33,6 +35,54 @@ export default function ArticlePage() {
     if (typeof window === 'undefined') return ''
     return `${window.location.origin}/article/${id}`
   }, [id])
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return undefined
+
+    const existing = document.getElementById(NEWS_ARTICLE_JSONLD_ID)
+    if (existing) existing.remove()
+
+    if (!article) return undefined
+
+    const parsedDate = new Date(article.date)
+    const datePublished = Number.isNaN(parsedDate.getTime())
+      ? article.date
+      : parsedDate.toISOString().split('T')[0]
+
+    const jsonLd = {
+      '@context': 'https://schema.org',
+      '@type': 'NewsArticle',
+      headline: article.title,
+      description: article.summary,
+      image: [article.image],
+      author: {
+        '@type': 'Person',
+        name: article.author,
+      },
+      publisher: {
+        '@type': 'Organization',
+        name: 'World Gist News',
+        logo: {
+          '@type': 'ImageObject',
+          url: `${window.location.origin}/logo.png`,
+        },
+      },
+      datePublished,
+      mainEntityOfPage: articleUrl,
+      articleSection: article.category,
+    }
+
+    const script = document.createElement('script')
+    script.type = 'application/ld+json'
+    script.id = NEWS_ARTICLE_JSONLD_ID
+    script.text = JSON.stringify(jsonLd)
+    document.head.appendChild(script)
+
+    return () => {
+      const current = document.getElementById(NEWS_ARTICLE_JSONLD_ID)
+      if (current) current.remove()
+    }
+  }, [article, articleUrl])
 
   useEffect(() => {
     if (!id) return

@@ -1,5 +1,6 @@
 ﻿import { useEffect } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { getById } from './data/feed'
 import SiteHeader from './components/SiteHeader'
 import SiteFooter from './components/SiteFooter'
 import HomePage from './pages/HomePage'
@@ -31,6 +32,39 @@ import './App.css'
 const ADMIN_AUTH_KEY = 'worldnews-admin-auth'
 const SETTINGS_STORAGE_KEY = 'worldnews-admin-settings'
 const DEFAULT_SITE_NAME = 'World Gist News'
+const DEFAULT_SITE_TAGLINE =
+  'Trusted updates across world, politics, sports, school, technology, and entertainment.'
+const BASE_URL = 'https://worldnews.vercel.app'
+
+function upsertMetaByName(name, content) {
+  let tag = document.querySelector(`meta[name="${name}"]`)
+  if (!tag) {
+    tag = document.createElement('meta')
+    tag.setAttribute('name', name)
+    document.head.appendChild(tag)
+  }
+  tag.setAttribute('content', content)
+}
+
+function upsertMetaByProperty(property, content) {
+  let tag = document.querySelector(`meta[property="${property}"]`)
+  if (!tag) {
+    tag = document.createElement('meta')
+    tag.setAttribute('property', property)
+    document.head.appendChild(tag)
+  }
+  tag.setAttribute('content', content)
+}
+
+function upsertCanonical(url) {
+  let link = document.querySelector('link[rel="canonical"]')
+  if (!link) {
+    link = document.createElement('link')
+    link.setAttribute('rel', 'canonical')
+    document.head.appendChild(link)
+  }
+  link.setAttribute('href', url)
+}
 
 function isAdminAuthenticated() {
   if (typeof window === 'undefined') return false
@@ -52,25 +86,100 @@ export default function App() {
   const isAdminRoute = location.pathname.startsWith('/admin')
 
   useEffect(() => {
-    const syncSiteTitle = () => {
+    const applySeo = () => {
       try {
         const saved = localStorage.getItem(SETTINGS_STORAGE_KEY)
-        if (!saved) {
-          document.title = DEFAULT_SITE_NAME
-          return
+        const parsed = saved ? JSON.parse(saved) : null
+        const siteName = parsed?.siteName?.trim() || DEFAULT_SITE_NAME
+        const siteTagline = parsed?.siteTagline?.trim() || DEFAULT_SITE_TAGLINE
+
+        let pageTitle = `${siteName} - ${siteTagline}`
+        let description = siteTagline
+
+        if (location.pathname === '/') {
+          pageTitle = `${siteName} - Breaking News, Politics, Sports, Technology & Entertainment`
+          description =
+            'Read latest headlines and in-depth updates on world news, politics, sports, school, technology, and entertainment.'
+        } else if (location.pathname === '/world-news') {
+          pageTitle = `World News - ${siteName}`
+          description = 'Breaking world updates, diplomacy, economy, and global affairs coverage.'
+        } else if (location.pathname === '/politics-news') {
+          pageTitle = `Politics News - ${siteName}`
+          description = 'Latest political stories, policy decisions, governance, and elections coverage.'
+        } else if (location.pathname === '/sports-news') {
+          pageTitle = `Sports News - ${siteName}`
+          description = 'Top sports headlines, league updates, athlete stories, and match analysis.'
+        } else if (location.pathname === '/school-news') {
+          pageTitle = `School News - ${siteName}`
+          description = 'Education and school updates, learning reforms, and campus developments.'
+        } else if (location.pathname === '/technology-news') {
+          pageTitle = `Technology News - ${siteName}`
+          description = 'Technology trends, digital innovation, startups, and product breakthroughs.'
+        } else if (location.pathname === '/entertainment-news') {
+          pageTitle = `Entertainment News - ${siteName}`
+          description = 'Entertainment updates on film, music, celebrity culture, and events.'
+        } else if (location.pathname === '/about-us') {
+          pageTitle = `About Us - ${siteName}`
+          description = 'Learn about World Gist News mission, editorial focus, and newsroom values.'
+        } else if (location.pathname === '/contact-us') {
+          pageTitle = `Contact Us - ${siteName}`
+          description = 'Contact the World Gist News editorial team for tips, partnerships, and inquiries.'
+        } else if (location.pathname === '/advertise') {
+          pageTitle = `Advertise - ${siteName}`
+          description = 'Advertise with World Gist News and reach engaged readers across key news categories.'
+        } else if (location.pathname === '/submit-news') {
+          pageTitle = `Submit News - ${siteName}`
+          description = 'Submit verified news tips, story leads, and press information to our newsroom.'
+        } else if (location.pathname === '/terms-and-conditions') {
+          pageTitle = `Terms and Conditions - ${siteName}`
+          description = 'Read terms and conditions for using World Gist News website and services.'
+        } else if (location.pathname.startsWith('/search')) {
+          const query = new URLSearchParams(location.search).get('q')
+          pageTitle = query ? `Search: ${query} - ${siteName}` : `Search - ${siteName}`
+          description = query
+            ? `Search results for ${query} on ${siteName}.`
+            : `Search latest stories and topics on ${siteName}.`
+        } else if (location.pathname.startsWith('/article/')) {
+          const articleId = location.pathname.split('/article/')[1]
+          const article = getById(articleId)
+
+          if (article) {
+            pageTitle = `${article.title} - ${siteName}`
+            description = article.summary
+          } else {
+            pageTitle = `Article - ${siteName}`
+            description = 'Read in-depth reporting and updates on World Gist News.'
+          }
+        } else if (location.pathname.startsWith('/category/')) {
+          const slug = location.pathname.split('/category/')[1] || ''
+          const categoryName = slug
+            .split('-')
+            .filter(Boolean)
+            .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+            .join(' ')
+          pageTitle = `${categoryName || 'Category'} News - ${siteName}`
+          description = `Latest ${categoryName || 'category'} updates and headlines on ${siteName}.`
         }
 
-        const parsed = JSON.parse(saved)
-        document.title = parsed?.siteName?.trim() || DEFAULT_SITE_NAME
+        const canonicalUrl = `${BASE_URL}${location.pathname}${location.search || ''}`
+        document.title = pageTitle
+        upsertMetaByName('description', description)
+        upsertMetaByProperty('og:title', pageTitle)
+        upsertMetaByProperty('og:description', description)
+        upsertMetaByProperty('og:url', canonicalUrl)
+        upsertMetaByName('twitter:title', pageTitle)
+        upsertMetaByName('twitter:description', description)
+        upsertCanonical(canonicalUrl)
       } catch {
         document.title = DEFAULT_SITE_NAME
+        upsertMetaByName('description', DEFAULT_SITE_TAGLINE)
       }
     }
 
-    syncSiteTitle()
-    window.addEventListener('storage', syncSiteTitle)
-    return () => window.removeEventListener('storage', syncSiteTitle)
-  }, [])
+    applySeo()
+    window.addEventListener('storage', applySeo)
+    return () => window.removeEventListener('storage', applySeo)
+  }, [location.pathname, location.search])
 
   return (
     <div className="app-shell">
