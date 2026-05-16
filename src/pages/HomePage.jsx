@@ -1,16 +1,24 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import NewsCard from '../components/NewsCard'
-import { getFeatured, getByCategory, getById, mostRead } from '../data/feed'
+import { getFeatured, getByCategory, getById, getLatest, mostRead } from '../data/feed'
 
 const politicsStories = getByCategory('Politics').slice(0, 3)
 const sportsStories = getByCategory('Sports').slice(0, 3)
 const worldStories = getByCategory('World')
 const schoolStories = getByCategory('School')
-const techStories = getByCategory('Technology').slice(0, 1)
+const techStories = getByCategory('Technology').slice(0, 4)
 
 export default function HomePage() {
+  const [currentPage, setCurrentPage] = useState(1)
+  const totalPages = 9
+  const storiesPerPage = 3
+
   const hero = getFeatured()
   const latest = worldStories.slice(0, 6)
+  const latestPosts = getLatest(9)
+    .filter((story) => story.id !== hero.id)
+    .slice(0, 6)
   const landingPopular = mostRead
     .filter((item) => item.category === 'Politics')
     .slice(0, 3)
@@ -18,6 +26,32 @@ export default function HomePage() {
   const worldFeature = worldStories[0]
   const schoolFeature = schoolStories[0]
   const technologyFeature = techStories[0]
+
+  const allTopStories = [
+    ...worldStories,
+    ...politicsStories,
+    ...sportsStories,
+    ...schoolStories,
+    ...techStories,
+  ]
+    .filter(Boolean)
+    .filter((story) => story.id !== hero.id)
+    .filter((story, index, all) => index === all.findIndex((item) => item.id === story.id))
+
+  const pagedStoryPool = Array.from(
+    { length: totalPages * storiesPerPage },
+    (_, index) => allTopStories[index % allTopStories.length]
+  )
+
+  const start = (currentPage - 1) * storiesPerPage
+  const end = start + storiesPerPage
+  const moreStories = pagedStoryPool.slice(start, end)
+
+  const goNext = () => setCurrentPage((page) => Math.min(totalPages, page + 1))
+  const goPrevious = () => setCurrentPage((page) => Math.max(1, page - 1))
+
+  const schoolUpdates = schoolStories.slice(0, 3)
+  const technologyUpdates = techStories.slice(0, 3)
 
   return (
     <main className="container">
@@ -76,31 +110,54 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="popular-zone" aria-label="Popular posts">
-        <h2>LATEST POSTS</h2>
-        <h2>POPULAR POSTS</h2>
+      <section className="news-section" id="more-stories">
+        <div className="section-head">
+          <h2>More Top Stories</h2>
+          <Link to="/category/politics">See all sections</Link>
+        </div>
+        <div className="card-grid">
+          {moreStories.map((article) => (
+            <NewsCard key={article.id} article={article} />
+          ))}
+        </div>
+      </section>
 
-        <div className="popular-list">
-          {landingPopular.map((item) => {
-            const story = getById(item.id)
+      <nav className="home-pagination" aria-label="Homepage story pages">
+        <button type="button" onClick={goPrevious} disabled={currentPage === 1}>
+          Back to Previous
+        </button>
 
+        <div className="home-pagination-pages">
+          {Array.from({ length: totalPages }, (_, index) => {
+            const pageNumber = index + 1
             return (
-              <Link
-                key={item.id}
-                className="popular-item popular-item-link"
-                to={`/article/${item.id}`}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                type="button"
+                key={pageNumber}
+                onClick={() => setCurrentPage(pageNumber)}
+                className={currentPage === pageNumber ? 'active' : ''}
+                aria-current={currentPage === pageNumber ? 'page' : undefined}
               >
-                <img src={story?.image || hero.image} alt={item.title} loading="lazy" />
-                <div>
-                  <h3>{item.title}</h3>
-                  <p>{story?.date}</p>
-                  <span className="teaser-read-more">Read more</span>
-                </div>
-              </Link>
+                {pageNumber}
+              </button>
             )
           })}
+        </div>
+
+        <button type="button" onClick={goNext} disabled={currentPage === totalPages}>
+          Next
+        </button>
+      </nav>
+
+      <section className="news-section" id="latest-posts">
+        <div className="section-head">
+          <h2>Latest Posts</h2>
+          <Link to="/category/world">Browse all</Link>
+        </div>
+        <div className="card-grid">
+          {latestPosts.map((article) => (
+            <NewsCard key={article.id} article={article} />
+          ))}
         </div>
       </section>
 
@@ -126,6 +183,36 @@ export default function HomePage() {
             <Link to="/category/sports">More</Link>
           </div>
           {sportsStories.map((story) => (
+            <Link className="list-card list-card-link" key={story.id} to={`/article/${story.id}`} target="_blank" rel="noopener noreferrer">
+              <h3>{story.title}</h3>
+              <p>{story.summary}</p>
+              <span className="teaser-read-more">Read more</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="split-section">
+        <div id="school-updates" className="split-column">
+          <div className="section-head">
+            <h2>School Updates</h2>
+            <Link to="/category/school">More</Link>
+          </div>
+          {schoolUpdates.map((story) => (
+            <Link className="list-card list-card-link" key={story.id} to={`/article/${story.id}`} target="_blank" rel="noopener noreferrer">
+              <h3>{story.title}</h3>
+              <p>{story.summary}</p>
+              <span className="teaser-read-more">Read more</span>
+            </Link>
+          ))}
+        </div>
+
+        <div id="technology-updates" className="split-column">
+          <div className="section-head">
+            <h2>Technology Updates</h2>
+            <Link to="/category/technology">More</Link>
+          </div>
+          {technologyUpdates.map((story) => (
             <Link className="list-card list-card-link" key={story.id} to={`/article/${story.id}`} target="_blank" rel="noopener noreferrer">
               <h3>{story.title}</h3>
               <p>{story.summary}</p>
@@ -206,6 +293,33 @@ export default function HomePage() {
             <p>No technology stories yet.</p>
           </article>
         )}
+      </section>
+
+      <section className="popular-zone" aria-label="Popular posts">
+        <h2>POPULAR POSTS</h2>
+
+        <div className="popular-list">
+          {landingPopular.map((item) => {
+            const story = getById(item.id)
+
+            return (
+              <Link
+                key={item.id}
+                className="popular-item popular-item-link"
+                to={`/article/${item.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img src={story?.image || hero.image} alt={item.title} loading="lazy" />
+                <div>
+                  <h3>{item.title}</h3>
+                  <p>{story?.date}</p>
+                  <span className="teaser-read-more">Read more</span>
+                </div>
+              </Link>
+            )
+          })}
+        </div>
       </section>
 
       {/* ── Newsletter ────────────────────────────────────────── */}

@@ -516,6 +516,48 @@ h3 {
   text-underline-offset: 2px;
 }
 
+.home-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin: 1rem 0 1.5rem;
+}
+
+.home-pagination button {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 10px;
+  padding: 0.45rem 0.7rem;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.home-pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.home-pagination-pages {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.home-pagination-pages button {
+  min-width: 2rem;
+}
+
+.home-pagination-pages button.active {
+  background: var(--ink);
+  color: #fff;
+  border-color: var(--ink);
+}
+
 .editorial-band {
   margin: 1rem 0 1.5rem;
   padding: 1.2rem;
