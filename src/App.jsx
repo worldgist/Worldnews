@@ -25,6 +25,7 @@ import AdminOverviewPage from './pages/admin/AdminOverviewPage'
 import AdminAddCategoryPage from './pages/admin/AdminAddCategoryPage'
 import AdminCategoriesPage from './pages/admin/AdminCategoriesPage'
 import AdminPostsPage from './pages/admin/AdminPostsPage'
+import AdminScheduledPostsPage from './pages/admin/AdminScheduledPostsPage'
 import AdminSocialMediaPage from './pages/admin/AdminSocialMediaPage'
 import AdminProfilePage from './pages/admin/AdminProfilePage'
 import AdminSettingsPage from './pages/admin/AdminSettingsPage'
@@ -221,6 +222,7 @@ export default function App() {
           <Route path="add-category" element={<AdminAddCategoryPage />} />
           <Route path="categories" element={<AdminCategoriesPage />} />
           <Route path="posts" element={<AdminPostsPage />} />
+          <Route path="scheduled-posts" element={<AdminScheduledPostsPage />} />
           <Route path="social-media" element={<AdminSocialMediaPage />} />
           <Route path="profile" element={<AdminProfilePage />} />
           <Route path="settings" element={<AdminSettingsPage />} />

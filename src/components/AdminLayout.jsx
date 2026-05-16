@@ -7,6 +7,7 @@ const ADMIN_MENU = [
   { to: '/admin/add-category', label: 'Add Category' },
   { to: '/admin/categories', label: 'Categories Management' },
   { to: '/admin/posts', label: 'News Post Editor' },
+  { to: '/admin/scheduled-posts', label: 'Scheduled Posts' },
   { to: '/admin/social-media', label: 'Social Media Management' },
   { to: '/admin/profile', label: 'Admin Profile' },
   { to: '/admin/settings', label: 'Admin Settings' },
