@@ -11,8 +11,7 @@ const techStories = getByCategory('Technology').slice(0, 4)
 
 export default function HomePage() {
   const [currentPage, setCurrentPage] = useState(1)
-  const totalPages = 9
-  const storiesPerPage = 3
+  const storiesPerPage = 10
 
   const hero = getFeatured()
   const latest = worldStories.slice(0, 6)
@@ -38,17 +37,21 @@ export default function HomePage() {
     .filter((story) => story.id !== hero.id)
     .filter((story, index, all) => index === all.findIndex((item) => item.id === story.id))
 
-  const pagedStoryPool = Array.from(
-    { length: totalPages * storiesPerPage },
-    (_, index) => allTopStories[index % allTopStories.length]
-  )
-
   const start = (currentPage - 1) * storiesPerPage
   const end = start + storiesPerPage
-  const moreStories = pagedStoryPool.slice(start, end)
+  const moreStories = allTopStories.slice(start, end)
+  const hasNextPage = end < allTopStories.length
+  const hasPreviousPage = currentPage > 1
 
-  const goNext = () => setCurrentPage((page) => Math.min(totalPages, page + 1))
-  const goPrevious = () => setCurrentPage((page) => Math.max(1, page - 1))
+  const goNext = () => {
+    if (!hasNextPage) return
+    setCurrentPage((page) => page + 1)
+  }
+
+  const goPrevious = () => {
+    if (!hasPreviousPage) return
+    setCurrentPage((page) => page - 1)
+  }
 
   const schoolUpdates = schoolStories.slice(0, 3)
   const technologyUpdates = techStories.slice(0, 3)
@@ -119,35 +122,23 @@ export default function HomePage() {
           {moreStories.map((article) => (
             <NewsCard key={article.id} article={article} />
           ))}
+
+          {hasNextPage && (
+            <button type="button" className="news-next-tile" onClick={goNext}>
+              <span>Next</span>
+              <small>Show more stories</small>
+            </button>
+          )}
         </div>
       </section>
 
-      <nav className="home-pagination" aria-label="Homepage story pages">
-        <button type="button" onClick={goPrevious} disabled={currentPage === 1}>
-          Back to Previous
-        </button>
-
-        <div className="home-pagination-pages">
-          {Array.from({ length: totalPages }, (_, index) => {
-            const pageNumber = index + 1
-            return (
-              <button
-                type="button"
-                key={pageNumber}
-                onClick={() => setCurrentPage(pageNumber)}
-                className={currentPage === pageNumber ? 'active' : ''}
-                aria-current={currentPage === pageNumber ? 'page' : undefined}
-              >
-                {pageNumber}
-              </button>
-            )
-          })}
+      {hasPreviousPage && (
+        <div className="home-pagination-inline">
+          <button type="button" onClick={goPrevious}>
+            Back to Previous
+          </button>
         </div>
-
-        <button type="button" onClick={goNext} disabled={currentPage === totalPages}>
-          Next
-        </button>
-      </nav>
+      )}
 
       <section className="news-section" id="latest-posts">
         <div className="section-head">

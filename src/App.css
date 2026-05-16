@@ -516,16 +516,13 @@ h3 {
   text-underline-offset: 2px;
 }
 
-.home-pagination {
+.home-pagination-inline {
   display: flex;
-  align-items: center;
   justify-content: center;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-  margin: 1rem 0 1.5rem;
+  margin: 0.2rem 0 1.4rem;
 }
 
-.home-pagination button {
+.home-pagination-inline button {
   border: 1px solid var(--line);
   background: var(--surface);
   color: var(--ink);
@@ -536,26 +533,27 @@ h3 {
   cursor: pointer;
 }
 
-.home-pagination button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.home-pagination-pages {
-  display: flex;
-  align-items: center;
+.news-next-tile {
+  min-height: 240px;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  background: #f6f9fc;
+  display: grid;
+  place-content: center;
   gap: 0.35rem;
-  flex-wrap: wrap;
+  text-align: center;
+  font-family: 'Space Grotesk', sans-serif;
+  color: #1a3a57;
+  cursor: pointer;
 }
 
-.home-pagination-pages button {
-  min-width: 2rem;
+.news-next-tile span {
+  font-size: 1.1rem;
+  font-weight: 700;
 }
 
-.home-pagination-pages button.active {
-  background: var(--ink);
-  color: #fff;
-  border-color: var(--ink);
+.news-next-tile small {
+  font-size: 0.85rem;
 }
 
 .editorial-band {
