@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { tickerItems, categories } from '../data/feed'
 
 const SETTINGS_STORAGE_KEY = 'worldnews-admin-settings'
@@ -9,7 +9,9 @@ export default function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [siteName, setSiteName] = useState(DEFAULT_SITE_NAME)
+  const location = useLocation()
   const navigate = useNavigate()
+  const isLandingPage = location.pathname === '/'
 
   useEffect(() => {
     const syncSettings = () => {
@@ -67,7 +69,12 @@ export default function SiteHeader() {
           <span className="brand-text">{siteName}</span>
         </Link>
 
-        <form className="header-search-form" onSubmit={submitSearch} role="search" aria-label="Search news">
+        <form
+          className={`header-search-form${isLandingPage ? ' landing-search' : ''}`}
+          onSubmit={submitSearch}
+          role="search"
+          aria-label="Search news"
+        >
           <input
             type="search"
             value={searchQuery}
@@ -79,7 +86,7 @@ export default function SiteHeader() {
         </form>
 
         <button
-          className="search-btn icon-btn"
+          className={`search-btn icon-btn${isLandingPage ? ' search-btn-hidden' : ''}`}
           type="button"
           aria-label="Go to search"
           onClick={() => navigate('/search')}

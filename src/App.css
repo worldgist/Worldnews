@@ -135,6 +135,10 @@ img {
   min-width: 200px;
 }
 
+.search-btn-hidden {
+  display: none;
+}
+
 .header-search-form button,
 .main-nav-search button {
   background: var(--ink);
@@ -2323,6 +2327,24 @@ blockquote {
     display: none;
   }
 
+  .header-search-form.landing-search {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    width: 100%;
+    order: 4;
+    margin-left: 0;
+    margin-top: 0.35rem;
+  }
+
+  .header-search-form.landing-search input,
+  .header-search-form.landing-search button {
+    width: 100%;
+  }
+
+  .search-btn.search-btn-hidden {
+    display: none;
+  }
+
   .menu-overlay {
     display: block;
     position: fixed;
@@ -2396,6 +2418,7 @@ blockquote {
   .brand-row {
     padding: 0.9rem 0;
     gap: 0.35rem;
+    flex-wrap: wrap;
   }
 
   .brand {
