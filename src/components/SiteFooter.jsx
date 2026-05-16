@@ -55,7 +55,7 @@ export default function SiteFooter() {
 
         <div className="footer-brand-small">
           <Link className="brand" to="/">
-            <span className="brand-mark">WGN</span>
+            <img className="brand-mark" src="/logo.png" alt="World Gist News logo" />
             <span className="brand-text">World Gist News</span>
           </Link>
           <p>(c) 2026 World Gist News.</p>

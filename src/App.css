@@ -158,15 +158,11 @@ img {
 }
 
 .brand-mark {
-  display: grid;
-  place-items: center;
+  display: block;
   width: 2.2rem;
   height: 2.2rem;
   border-radius: 8px;
-  font-family: 'Space Grotesk', sans-serif;
-  font-weight: 700;
-  background: linear-gradient(160deg, #0f5f37, #1f9d69);
-  color: #fff;
+  object-fit: contain;
 }
 
 .brand-text {

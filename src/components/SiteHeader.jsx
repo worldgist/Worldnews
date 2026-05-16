@@ -38,7 +38,7 @@ export default function SiteHeader() {
         </button>
 
         <Link className="brand" to="/" aria-label="World Gist News home">
-          <span className="brand-mark">WGN</span>
+          <img className="brand-mark" src="/logo.png" alt="World Gist News logo" />
           <span className="brand-text">World Gist News</span>
         </Link>
 
