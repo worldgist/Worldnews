@@ -82,6 +82,27 @@ function formatDateTime(isoString) {
   return value.toLocaleString()
 }
 
+function formatDateOnly(isoString) {
+  if (!isoString) return 'N/A'
+  const value = new Date(isoString)
+  if (Number.isNaN(value.getTime())) return 'N/A'
+  return value.toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
+
+function formatTimeOnly(isoString) {
+  if (!isoString) return 'N/A'
+  const value = new Date(isoString)
+  if (Number.isNaN(value.getTime())) return 'N/A'
+  return value.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+}
+
 export default function AdminPostsPage() {
   const [managedCategories] = useState(loadCategories())
   const [adminPosts, setAdminPosts] = useState(loadPosts())
@@ -619,8 +640,8 @@ export default function AdminPostsPage() {
                       {(post.status || 'published').toUpperCase()}
                     </span>
                     {(post.status || 'published') === 'scheduled'
-                      ? ` Scheduled for: ${formatDateTime(post.scheduledFor)}`
-                      : ` Published at: ${formatDateTime(post.publishedAt)}`}
+                      ? ` Schedule Date: ${formatDateOnly(post.scheduledFor)} | Schedule Time: ${formatTimeOnly(post.scheduledFor)}`
+                      : ` Publish Date: ${formatDateOnly(post.publishedAt)} | Publish Time: ${formatTimeOnly(post.publishedAt)}`}
                   </p>
                 </div>
                 <div className="admin-post-item-actions">

@@ -2132,6 +2132,93 @@ blockquote {
   gap: 0.45rem;
 }
 
+.admin-post-item-actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.scheduled-queue-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.55rem;
+  margin: 0.2rem 0 0.75rem;
+}
+
+.scheduled-queue-stats article {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.55rem 0.65rem;
+  background: #fff;
+  display: grid;
+  gap: 0.12rem;
+}
+
+.scheduled-queue-stats strong {
+  font-size: 0.95rem;
+}
+
+.scheduled-queue-stats span {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.scheduled-queue-controls {
+  display: grid;
+  grid-template-columns: 1fr minmax(160px, 240px);
+  gap: 0.55rem;
+  margin-bottom: 0.55rem;
+}
+
+.scheduled-queue-controls input,
+.scheduled-queue-controls select {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.45rem 0.55rem;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.scheduled-queue-bulk-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.55rem;
+}
+
+.scheduled-queue-bulk-actions label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.scheduled-post-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.scheduled-post-reschedule {
+  margin-top: 0.4rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.scheduled-post-reschedule input {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.32rem 0.45rem;
+}
+
+.scheduled-post-reschedule button {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.3rem 0.55rem;
+  background: #fff;
+}
+
 .post-status-badge {
   display: inline-flex;
   align-items: center;
@@ -2413,6 +2500,15 @@ blockquote {
 
   .post-editor-meta-row {
     grid-template-columns: 1fr;
+  }
+
+  .scheduled-queue-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .scheduled-queue-bulk-actions {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .post-save-indicator {
