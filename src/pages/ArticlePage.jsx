@@ -26,6 +26,7 @@ export default function ArticlePage() {
   const [replyOpenFor, setReplyOpenFor] = useState(null)
   const [replyName, setReplyName] = useState('')
   const [replyText, setReplyText] = useState('')
+  const [subscribeEmail, setSubscribeEmail] = useState('')
   const [commentSettings, setCommentSettings] = useState(loadSettings())
 
   const articleUrl = useMemo(() => {
@@ -115,6 +116,14 @@ export default function ArticlePage() {
 
   const openInstallPrompt = () => {
     alert('To install this app: open your browser menu and choose "Install app".')
+  }
+
+  const handleArticleSubscribe = (e) => {
+    e.preventDefault()
+    const email = subscribeEmail.trim()
+    if (!email) return
+    alert(`Subscribed successfully with ${email}.`)
+    setSubscribeEmail('')
   }
 
   if (!article) {
@@ -243,6 +252,20 @@ export default function ArticlePage() {
               Instagram
             </a>
           </div>
+        </section>
+
+        <section className="article-subscribe" aria-label="Article subscribe">
+          <h3>Like this article? Enter email to subscribe</h3>
+          <form className="article-subscribe-form" onSubmit={handleArticleSubscribe}>
+            <input
+              type="email"
+              placeholder="Enter your email"
+              value={subscribeEmail}
+              onChange={(e) => setSubscribeEmail(e.target.value)}
+              required
+            />
+            <button type="submit">Subscribe</button>
+          </form>
         </section>
 
         <section className="comments-section" aria-label="Comments and replies">
