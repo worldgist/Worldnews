@@ -260,14 +260,17 @@ export default function AdminSettingsPage() {
           onChange={(e) => handleSettingChange('contactUsContent', e.target.value)}
           placeholder="Write Contact Us content"
         />
-        <label htmlFor="termsContentInput">Terms and Conditions Content</label>
-        <textarea
-          id="termsContentInput"
-          rows={8}
-          value={settings.termsContent}
-          onChange={(e) => handleSettingChange('termsContent', e.target.value)}
-          placeholder="Write Terms and Conditions content"
-        />
+        <p className="admin-settings-note">
+          Terms and Conditions and Privacy Policy are published at{' '}
+          <a href="/terms-and-conditions" target="_blank" rel="noopener noreferrer">
+            /terms-and-conditions
+          </a>{' '}
+          and{' '}
+          <a href="/privacy-policy" target="_blank" rel="noopener noreferrer">
+            /privacy-policy
+          </a>
+          . Update legal copy in the site source when needed.
+        </p>
         <div className="admin-settings-actions">
           <button type="submit">Save Settings</button>
           <button type="button" className="btn-secondary" onClick={handleResetSettings}>Reset Defaults</button>

@@ -217,8 +217,9 @@ export default function ContactPage() {
               <label className="page-checkbox">
                 <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
                 <span>
-                  I agree that {settings.siteName} may respond to this message using the email address above. See{' '}
-                  <Link to="/terms-and-conditions">terms</Link> for details on data use.
+                  I agree that {settings.siteName} may respond to this message using the email address above. See our{' '}
+                  <Link to="/privacy-policy">Privacy Policy</Link> and <Link to="/terms-and-conditions">terms</Link> for
+                  details on data use.
                 </span>
               </label>
               {touched && errors.consent ? <span className="field-error">{errors.consent}</span> : null}

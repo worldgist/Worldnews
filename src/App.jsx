@@ -12,6 +12,7 @@ import ContactPage from './pages/ContactPage'
 import AdvertisePage from './pages/AdvertisePage'
 import SubmitNewsPage from './pages/SubmitNewsPage'
 import TermsPage from './pages/TermsPage'
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage'
 import WorldNewsPage from './pages/WorldNewsPage'
 import PoliticsNewsPage from './pages/PoliticsNewsPage'
 import SportsNewsPage from './pages/SportsNewsPage'
@@ -167,6 +168,10 @@ export default function App() {
         } else if (location.pathname === '/terms-and-conditions') {
           pageTitle = `Terms and Conditions - ${siteName}`
           description = 'Read terms and conditions for using World Gist News website and services.'
+        } else if (location.pathname === '/privacy-policy') {
+          pageTitle = `Privacy Policy - ${siteName}`
+          description =
+            'Privacy policy for World Gist News, including cookies, Google AdSense advertising, and your data rights.'
         } else if (location.pathname.startsWith('/search')) {
           const query = new URLSearchParams(location.search).get('q')
           pageTitle = query ? `Search: ${query} - ${siteName}` : `Search - ${siteName}`
@@ -243,6 +248,7 @@ export default function App() {
         <Route path="/advertise" element={<AdvertisePage />} />
         <Route path="/submit-news" element={<SubmitNewsPage />} />
         <Route path="/terms-and-conditions" element={<TermsPage />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
         <Route
           path="/admin/login"
           element={

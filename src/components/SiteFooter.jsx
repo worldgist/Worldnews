@@ -114,6 +114,12 @@ export default function SiteFooter() {
                   <span className="sr-only"> (opens in new tab)</span>
                 </Link>
               </li>
+              <li>
+                <Link to="/privacy-policy" target="_blank" rel="noopener noreferrer">
+                  Privacy Policy
+                  <span className="sr-only"> (opens in new tab)</span>
+                </Link>
+              </li>
             </ul>
           </nav>
         </div>

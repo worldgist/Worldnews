@@ -80,6 +80,9 @@ export default function AboutPage() {
             <li>
               <Link to="/terms-and-conditions">Terms</Link>
             </li>
+            <li>
+              <Link to="/privacy-policy">Privacy Policy</Link>
+            </li>
           </ul>
         </aside>
       </section>
