@@ -44,6 +44,11 @@ export const mostRead = [
     title: 'National League Adopts Youth Development Quota for All Clubs',
     category: 'Sports',
   },
+  {
+    id: 'film-festival-opening-night',
+    title: 'City Film Festival Opens with Record Attendance and Local Premieres',
+    category: 'Entertainment',
+  },
 ]
 
 export const articles = [
@@ -351,6 +356,42 @@ export const articles = [
     readTime: '4 min',
     image:
       'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=900&q=80',
+    featured: false,
+  },
+  {
+    id: 'film-festival-opening-night',
+    category: 'Entertainment',
+    title: 'City Film Festival Opens with Record Attendance and Local Premieres',
+    summary:
+      'Organizers said ticket demand exceeded expectations as independent filmmakers drew major opening-night crowds.',
+    body: [
+      'The annual city film festival opened to packed venues, with organizers confirming a record first-day turnout.',
+      'This year\'s lineup features more regional productions and first-time directors than any previous edition.',
+      'Industry guests praised the event\'s new mentorship tracks connecting emerging creators with established producers.',
+    ],
+    author: 'Lara Mensah',
+    date: 'May 12, 2026',
+    readTime: '4 min',
+    image:
+      'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=900&q=80',
+    featured: false,
+  },
+  {
+    id: 'music-streaming-local-wave',
+    category: 'Entertainment',
+    title: 'Streaming Platforms Report Surge in Local Music Discovery',
+    summary:
+      'New analytics from major platforms show strong growth in regional playlists and emerging artist releases.',
+    body: [
+      'Music streaming services report that local-language playlists are among the fastest-growing categories this quarter.',
+      'Label executives say improved recommendation tools are helping independent artists reach audiences beyond their home regions.',
+      'Analysts expect the trend to influence festival bookings and brand partnerships through the second half of the year.',
+    ],
+    author: 'Kevin Ojo',
+    date: 'May 4, 2026',
+    readTime: '5 min',
+    image:
+      'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=900&q=80',
     featured: false,
   },
 ]

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import NewsCard from '../components/NewsCard'
 import { getById, getLatest, mostRead, articles } from '../data/feed'
+import { loadSettings } from '../admin/storage'
 
 function commentsStorageKey(articleId) {
   return `worldnews-comments-${articleId}`
@@ -25,6 +26,7 @@ export default function ArticlePage() {
   const [replyOpenFor, setReplyOpenFor] = useState(null)
   const [replyName, setReplyName] = useState('')
   const [replyText, setReplyText] = useState('')
+  const [commentSettings, setCommentSettings] = useState(loadSettings())
 
   const articleUrl = useMemo(() => {
     if (typeof window === 'undefined') return ''
@@ -39,6 +41,16 @@ export default function ArticlePage() {
     setReplyText('')
   }, [id])
 
+  useEffect(() => {
+    const syncSettings = () => setCommentSettings(loadSettings())
+    window.addEventListener('storage', syncSettings)
+    return () => window.removeEventListener('storage', syncSettings)
+  }, [])
+
+  const commentsEnabled = commentSettings.commentsEnabled !== false
+  const repliesEnabled = commentSettings.repliesEnabled !== false
+  const maxCommentLength = Math.min(2000, Math.max(80, Number(commentSettings.commentMaxLength) || 500))
+
   const persistComments = (nextComments) => {
     setComments(nextComments)
     if (!id) return
@@ -47,7 +59,12 @@ export default function ArticlePage() {
 
   const handleAddComment = (e) => {
     e.preventDefault()
+    if (!commentsEnabled) return
     if (!commentName.trim() || !commentText.trim()) return
+    if (commentText.trim().length > maxCommentLength) {
+      alert(`Comment cannot exceed ${maxCommentLength} characters.`)
+      return
+    }
 
     const nextComments = [
       {
@@ -67,7 +84,12 @@ export default function ArticlePage() {
 
   const handleAddReply = (e, commentId) => {
     e.preventDefault()
+    if (!repliesEnabled) return
     if (!replyName.trim() || !replyText.trim()) return
+    if (replyText.trim().length > maxCommentLength) {
+      alert(`Reply cannot exceed ${maxCommentLength} characters.`)
+      return
+    }
 
     const nextComments = comments.map((comment) => {
       if (comment.id !== commentId) return comment
@@ -226,23 +248,28 @@ export default function ArticlePage() {
         <section className="comments-section" aria-label="Comments and replies">
           <h3>Comments ({comments.length})</h3>
 
-          <form className="comment-form" onSubmit={handleAddComment}>
-            <input
-              type="text"
-              placeholder="Your name"
-              value={commentName}
-              onChange={(e) => setCommentName(e.target.value)}
-              required
-            />
-            <textarea
-              placeholder="Write a comment"
-              value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
-              rows={4}
-              required
-            />
-            <button type="submit">Post Comment</button>
-          </form>
+          {!commentsEnabled ? (
+            <p className="comments-empty">Comments are currently disabled by admin settings.</p>
+          ) : (
+            <form className="comment-form" onSubmit={handleAddComment}>
+              <input
+                type="text"
+                placeholder="Your name"
+                value={commentName}
+                onChange={(e) => setCommentName(e.target.value)}
+                required
+              />
+              <textarea
+                placeholder="Write a comment"
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                rows={4}
+                maxLength={maxCommentLength}
+                required
+              />
+              <button type="submit">Post Comment</button>
+            </form>
+          )}
 
           <div className="comments-list">
             {comments.length === 0 && (
@@ -250,26 +277,32 @@ export default function ArticlePage() {
             )}
 
             {comments.map((comment) => (
-              <article key={comment.id} className="comment-item">
+              <article key={comment.id} className={`comment-item${comment.isClosed ? ' closed' : ''}`}>
                 <header>
                   <strong>{comment.name}</strong>
                   <span>{new Date(comment.createdAt).toLocaleString()}</span>
                 </header>
                 <p>{comment.text}</p>
 
-                <button
-                  type="button"
-                  className="reply-toggle"
-                  onClick={() => {
-                    setReplyOpenFor(replyOpenFor === comment.id ? null : comment.id)
-                    setReplyName('')
-                    setReplyText('')
-                  }}
-                >
-                  Reply
-                </button>
+                {comment.isClosed && (
+                  <p className="comment-closed-note">Comment closed by admin.</p>
+                )}
 
-                {replyOpenFor === comment.id && (
+                {repliesEnabled && !comment.isClosed && (
+                  <button
+                    type="button"
+                    className="reply-toggle"
+                    onClick={() => {
+                      setReplyOpenFor(replyOpenFor === comment.id ? null : comment.id)
+                      setReplyName('')
+                      setReplyText('')
+                    }}
+                  >
+                    Reply
+                  </button>
+                )}
+
+                {repliesEnabled && !comment.isClosed && replyOpenFor === comment.id && (
                   <form className="reply-form" onSubmit={(e) => handleAddReply(e, comment.id)}>
                     <input
                       type="text"
@@ -283,6 +316,7 @@ export default function ArticlePage() {
                       value={replyText}
                       onChange={(e) => setReplyText(e.target.value)}
                       rows={3}
+                      maxLength={maxCommentLength}
                       required
                     />
                     <button type="submit">Post Reply</button>

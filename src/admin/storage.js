@@ -1,0 +1,118 @@
+import { categories } from '../data/feed'
+
+export const ADMIN_AUTH_KEY = 'worldnews-admin-auth'
+export const CATEGORY_STORAGE_KEY = 'worldnews-admin-categories'
+export const POST_STORAGE_KEY = 'worldnews-admin-posts'
+export const SETTINGS_STORAGE_KEY = 'worldnews-admin-settings'
+export const PROFILE_STORAGE_KEY = 'worldnews-admin-profile'
+
+export const DEFAULT_SETTINGS = {
+  siteName: 'World Gist News',
+  siteTagline: 'Trusted updates across world, politics, sports, school, and technology.',
+  contactEmail: 'newsroom@worldgistnews.com',
+  copyrightText: '(c) 2026 World Gist News.',
+  socialFacebook: 'https://facebook.com/worldgistnews',
+  socialX: 'https://x.com/worldgistnews',
+  socialInstagram: 'https://instagram.com/worldgistnews',
+  socialWhatsapp: 'https://wa.me/2340000000000',
+  socialYoutube: 'https://youtube.com/@worldgistnews',
+  socialTiktok: 'https://tiktok.com/@worldgistnews',
+  commentsEnabled: true,
+  repliesEnabled: true,
+  commentMaxLength: 500,
+  aboutUsContent:
+    'World Gist News is a digital publication focused on reliable reporting, global context, and accessible storytelling for everyday readers.\n\nOur editorial team covers politics, world affairs, technology, school development, and community impact stories with a strong emphasis on clarity and public value.\n\nWe believe quality journalism should be easy to navigate, easy to understand, and available on any device.',
+  contactUsContent:
+    'For editorial tips, partnership requests, corrections, or general inquiries, please use the form below.\n\nOur team reviews every message and replies as soon as possible during working hours.',
+  termsContent:
+    'By using World Gist News, you agree to these terms. If you do not agree, please discontinue use of this website.\n\nAll content is provided for information purposes only. Republishing, copying, or redistribution of materials without permission is prohibited unless otherwise stated.\n\nYou agree not to misuse this site, disrupt services, or post harmful or unlawful content through forms or interactive features.\n\nOur pages may include links to external websites. We are not responsible for the content or policies of third-party services.\n\nWe may revise these terms periodically. Continued use of the site after updates means you accept the revised version.',
+}
+
+export const DEFAULT_PROFILE = {
+  fullName: 'Admin User',
+  email: 'admin@worldgistnews.com',
+  role: 'Editor in Chief',
+  bio: 'Managing editorial quality and publication workflow for World Gist News.',
+}
+
+export function getCategoryPath(category) {
+  const slug = category.toLowerCase().replace(/\s+/g, '-')
+  const dedicatedRoutes = {
+    world: '/world-news',
+    politics: '/politics-news',
+    sports: '/sports-news',
+    school: '/school-news',
+    technology: '/technology-news',
+    entertainment: '/entertainment-news',
+  }
+
+  return dedicatedRoutes[slug] || `/category/${slug}`
+}
+
+export function loadCategories() {
+  try {
+    const saved = localStorage.getItem(CATEGORY_STORAGE_KEY)
+    if (!saved) return categories
+    const parsed = JSON.parse(saved)
+    if (!Array.isArray(parsed) || parsed.length === 0) return categories
+
+    const merged = [...parsed]
+    categories.forEach((category) => {
+      const exists = merged.some((item) => item.toLowerCase() === category.toLowerCase())
+      if (!exists) merged.push(category)
+    })
+
+    return merged
+  } catch {
+    return categories
+  }
+}
+
+export function saveCategories(nextCategories) {
+  localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(nextCategories))
+}
+
+export function loadPosts() {
+  try {
+    const saved = localStorage.getItem(POST_STORAGE_KEY)
+    if (!saved) return []
+    const parsed = JSON.parse(saved)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
+export function savePosts(nextPosts) {
+  localStorage.setItem(POST_STORAGE_KEY, JSON.stringify(nextPosts))
+}
+
+export function loadSettings() {
+  try {
+    const saved = localStorage.getItem(SETTINGS_STORAGE_KEY)
+    if (!saved) return DEFAULT_SETTINGS
+    const parsed = JSON.parse(saved)
+    return { ...DEFAULT_SETTINGS, ...parsed }
+  } catch {
+    return DEFAULT_SETTINGS
+  }
+}
+
+export function saveSettings(nextSettings) {
+  localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(nextSettings))
+}
+
+export function loadProfile() {
+  try {
+    const saved = localStorage.getItem(PROFILE_STORAGE_KEY)
+    if (!saved) return DEFAULT_PROFILE
+    const parsed = JSON.parse(saved)
+    return { ...DEFAULT_PROFILE, ...parsed }
+  } catch {
+    return DEFAULT_PROFILE
+  }
+}
+
+export function saveProfile(nextProfile) {
+  localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(nextProfile))
+}

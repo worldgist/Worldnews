@@ -1,10 +1,27 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { loadSettings } from '../admin/storage'
 
 export default function ContactPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
+  const [settings, setSettings] = useState(loadSettings())
+
+  useEffect(() => {
+    const sync = () => setSettings(loadSettings())
+    window.addEventListener('storage', sync)
+    return () => window.removeEventListener('storage', sync)
+  }, [])
+
+  const contactParagraphs = useMemo(
+    () =>
+      (settings.contactUsContent || '')
+        .split(/\n\s*\n/)
+        .map((text) => text.trim())
+        .filter(Boolean),
+    [settings.contactUsContent],
+  )
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -18,10 +35,9 @@ export default function ContactPage() {
     <main className="container static-page">
       <p className="kicker">Contact Us</p>
       <h1>Get in Touch</h1>
-      <p>
-        For editorial tips, partnership requests, corrections, or general
-        inquiries, please use the form below.
-      </p>
+      {contactParagraphs.map((paragraph) => (
+        <p key={paragraph}>{paragraph}</p>
+      ))}
 
       <form className="contact-page-form" onSubmit={handleSubmit}>
         <input
@@ -49,7 +65,7 @@ export default function ContactPage() {
       </form>
 
       <div className="contact-meta">
-        <p>Email: newsroom@worldgistnews.com</p>
+        <p>Email: {settings.contactEmail}</p>
         <p>Editorial Desk: Mon - Fri, 8:00AM - 6:00PM</p>
       </div>
 

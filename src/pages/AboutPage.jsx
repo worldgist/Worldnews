@@ -1,23 +1,32 @@
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { loadSettings } from '../admin/storage'
 
 export default function AboutPage() {
+  const [settings, setSettings] = useState(loadSettings())
+
+  useEffect(() => {
+    const sync = () => setSettings(loadSettings())
+    window.addEventListener('storage', sync)
+    return () => window.removeEventListener('storage', sync)
+  }, [])
+
+  const aboutParagraphs = useMemo(
+    () =>
+      (settings.aboutUsContent || '')
+        .split(/\n\s*\n/)
+        .map((text) => text.trim())
+        .filter(Boolean),
+    [settings.aboutUsContent],
+  )
+
   return (
     <main className="container static-page">
       <p className="kicker">About Us</p>
       <h1>About World Gist News</h1>
-      <p>
-        World Gist News is a digital publication focused on reliable reporting,
-        global context, and accessible storytelling for everyday readers.
-      </p>
-      <p>
-        Our editorial team covers politics, world affairs, technology, school
-        development, and community impact stories with a strong emphasis on
-        clarity and public value.
-      </p>
-      <p>
-        We believe quality journalism should be easy to navigate, easy to
-        understand, and available on any device.
-      </p>
+      {aboutParagraphs.map((paragraph) => (
+        <p key={paragraph}>{paragraph}</p>
+      ))}
 
       <section className="static-section">
         <h2>Our Mission</h2>

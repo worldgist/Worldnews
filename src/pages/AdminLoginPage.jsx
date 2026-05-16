@@ -17,7 +17,7 @@ export default function AdminLoginPage() {
 
     if (username.trim() === ADMIN_USER && password === ADMIN_PASS) {
       localStorage.setItem(ADMIN_AUTH_KEY, 'true')
-      const nextPath = location.state?.from?.pathname || '/admin/dashboard'
+      const nextPath = location.state?.from?.pathname || '/admin/overview'
       navigate(nextPath, { replace: true })
       return
     }

@@ -22,6 +22,16 @@ const DEFAULT_PROFILE = {
   bio: 'Managing editorial quality and publication workflow for World Gist News.',
 }
 
+const ADMIN_SECTIONS = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'add-category', label: 'Add Category' },
+  { id: 'categories', label: 'Categories Management' },
+  { id: 'posts', label: 'News Post Editor' },
+  { id: 'profile', label: 'Admin Profile' },
+  { id: 'settings', label: 'Admin Settings' },
+  { id: 'quick-links', label: 'Quick Access' },
+]
+
 function getCategoryPath(category) {
   const slug = category.toLowerCase().replace(/\s+/g, '-')
   const dedicatedRoutes = {
@@ -46,6 +56,7 @@ export default function AdminDashboardPage() {
   const [profile, setProfile] = useState(DEFAULT_PROFILE)
   const [profileDraft, setProfileDraft] = useState(DEFAULT_PROFILE)
   const [editingProfile, setEditingProfile] = useState(false)
+  const [activeSection, setActiveSection] = useState('overview')
   const [postForm, setPostForm] = useState({
     title: '',
     category: categories[0] || 'World',
@@ -285,301 +296,346 @@ export default function AdminDashboardPage() {
         </button>
       </div>
 
-      <section className="admin-metrics" aria-label="Dashboard metrics">
-        <article>
-          <h2>{articles.length}</h2>
-          <p>Total Articles</p>
-        </article>
-        <article>
-          <h2>{managedCategories.length}</h2>
-          <p>Active Categories</p>
-        </article>
-        <article>
-          <h2>{articles.filter((story) => story.featured).length}</h2>
-          <p>Featured Stories</p>
-        </article>
-      </section>
-
-      <section className="admin-profile" aria-label="Admin profile">
-        <div className="admin-profile-head">
-          <h3>Admin Profile</h3>
-          {!editingProfile && (
-            <button type="button" onClick={() => setEditingProfile(true)}>
-              Edit Profile
+      <div className="admin-layout">
+        <aside className="admin-sidebar" aria-label="Admin dashboard menu">
+          {ADMIN_SECTIONS.map((section) => (
+            <button
+              key={section.id}
+              type="button"
+              className={activeSection === section.id ? 'active' : ''}
+              onClick={() => setActiveSection(section.id)}
+            >
+              {section.label}
             </button>
+          ))}
+        </aside>
+
+        <section className="admin-main-panel" aria-label="Admin dashboard content">
+          {activeSection === 'overview' && (
+            <section className="admin-metrics" aria-label="Dashboard metrics">
+              <article>
+                <h2>{articles.length}</h2>
+                <p>Total Articles</p>
+              </article>
+              <article>
+                <h2>{managedCategories.length}</h2>
+                <p>Active Categories</p>
+              </article>
+              <article>
+                <h2>{articles.filter((story) => story.featured).length}</h2>
+                <p>Featured Stories</p>
+              </article>
+            </section>
           )}
-        </div>
 
-        {editingProfile ? (
-          <form className="admin-profile-form" onSubmit={handleSaveProfile}>
-            <label htmlFor="adminProfileName">Full Name</label>
-            <input
-              id="adminProfileName"
-              type="text"
-              value={profileDraft.fullName}
-              onChange={(e) => handleProfileChange('fullName', e.target.value)}
-              required
-            />
+          {activeSection === 'add-category' && (
+            <section className="admin-categories" aria-label="Add category">
+              <h3>Add Category</h3>
+              <form className="admin-categories-form" onSubmit={handleAddCategory}>
+                <input
+                  type="text"
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                  placeholder="Enter category name"
+                />
+                <button type="submit">Create Category</button>
+              </form>
+              <p className="admin-auth-hint">New categories are saved to your admin local settings.</p>
+            </section>
+          )}
 
-            <label htmlFor="adminProfileEmail">Email</label>
-            <input
-              id="adminProfileEmail"
-              type="email"
-              value={profileDraft.email}
-              onChange={(e) => handleProfileChange('email', e.target.value)}
-              required
-            />
+          {activeSection === 'profile' && (
+            <section className="admin-profile" aria-label="Admin profile">
+              <div className="admin-profile-head">
+                <h3>Admin Profile</h3>
+                {!editingProfile && (
+                  <button type="button" onClick={() => setEditingProfile(true)}>
+                    Edit Profile
+                  </button>
+                )}
+              </div>
 
-            <label htmlFor="adminProfileRole">Role</label>
-            <input
-              id="adminProfileRole"
-              type="text"
-              value={profileDraft.role}
-              onChange={(e) => handleProfileChange('role', e.target.value)}
-              required
-            />
-
-            <label htmlFor="adminProfileBio">Bio</label>
-            <textarea
-              id="adminProfileBio"
-              rows={3}
-              value={profileDraft.bio}
-              onChange={(e) => handleProfileChange('bio', e.target.value)}
-            />
-
-            <div className="admin-profile-actions">
-              <button type="submit">Save Profile</button>
-              <button type="button" className="btn-secondary" onClick={handleCancelProfileEdit}>
-                Cancel
-              </button>
-            </div>
-          </form>
-        ) : (
-          <div className="admin-profile-view">
-            <p>
-              <strong>Name:</strong> {profile.fullName}
-            </p>
-            <p>
-              <strong>Email:</strong> {profile.email}
-            </p>
-            <p>
-              <strong>Role:</strong> {profile.role}
-            </p>
-            <p>
-              <strong>Bio:</strong> {profile.bio}
-            </p>
-          </div>
-        )}
-      </section>
-
-      <section className="admin-categories" aria-label="Categories management">
-        <h3>Categories Management</h3>
-        <form className="admin-categories-form" onSubmit={handleAddCategory}>
-          <input
-            type="text"
-            value={newCategory}
-            onChange={(e) => setNewCategory(e.target.value)}
-            placeholder="Add new category"
-          />
-          <button type="submit">Add Category</button>
-        </form>
-
-        <ul className="admin-categories-list">
-          {managedCategories.map((cat) => (
-            <li key={cat}>
-              {editingCategory === cat ? (
-                <>
+              {editingProfile ? (
+                <form className="admin-profile-form" onSubmit={handleSaveProfile}>
+                  <label htmlFor="adminProfileName">Full Name</label>
                   <input
+                    id="adminProfileName"
                     type="text"
-                    value={editingValue}
-                    onChange={(e) => setEditingValue(e.target.value)}
-                    aria-label={`Edit category ${cat}`}
+                    value={profileDraft.fullName}
+                    onChange={(e) => handleProfileChange('fullName', e.target.value)}
+                    required
                   />
-                  <button type="button" onClick={saveEditing}>Save</button>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    onClick={() => {
-                      setEditingCategory(null)
-                      setEditingValue('')
-                    }}
-                  >
-                    Cancel
-                  </button>
-                </>
-              ) : (
-                <>
-                  <span>{cat}</span>
-                  <button type="button" onClick={() => startEditing(cat)}>Edit</button>
-                  <button
-                    type="button"
-                    className="btn-danger"
-                    onClick={() => handleDeleteCategory(cat)}
-                  >
-                    Delete
-                  </button>
-                </>
-              )}
-            </li>
-          ))}
-        </ul>
-      </section>
 
-      <section className="admin-post-editor" aria-label="News post editor">
-        <h3>News Post Editor</h3>
-        <form className="admin-post-form" onSubmit={handleCreatePost}>
-          <input
-            type="text"
-            value={postForm.title}
-            onChange={(e) => handlePostFormChange('title', e.target.value)}
-            placeholder="Post title"
-            required
-          />
+                  <label htmlFor="adminProfileEmail">Email</label>
+                  <input
+                    id="adminProfileEmail"
+                    type="email"
+                    value={profileDraft.email}
+                    onChange={(e) => handleProfileChange('email', e.target.value)}
+                    required
+                  />
 
-          <select
-            value={postForm.category}
-            onChange={(e) => handlePostFormChange('category', e.target.value)}
-          >
-            {managedCategories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
+                  <label htmlFor="adminProfileRole">Role</label>
+                  <input
+                    id="adminProfileRole"
+                    type="text"
+                    value={profileDraft.role}
+                    onChange={(e) => handleProfileChange('role', e.target.value)}
+                    required
+                  />
 
-          <input
-            type="text"
-            value={postForm.author}
-            onChange={(e) => handlePostFormChange('author', e.target.value)}
-            placeholder="Author"
-          />
+                  <label htmlFor="adminProfileBio">Bio</label>
+                  <textarea
+                    id="adminProfileBio"
+                    rows={3}
+                    value={profileDraft.bio}
+                    onChange={(e) => handleProfileChange('bio', e.target.value)}
+                  />
 
-          <input
-            type="text"
-            value={postForm.readTime}
-            onChange={(e) => handlePostFormChange('readTime', e.target.value)}
-            placeholder="Read time (e.g. 4 min)"
-          />
-
-          <input
-            type="url"
-            value={postForm.image}
-            onChange={(e) => handlePostFormChange('image', e.target.value)}
-            placeholder="Image URL (optional)"
-          />
-
-          <textarea
-            value={postForm.summary}
-            onChange={(e) => handlePostFormChange('summary', e.target.value)}
-            placeholder="Short summary"
-            rows={3}
-            required
-          />
-
-          <textarea
-            value={postForm.body}
-            onChange={(e) => handlePostFormChange('body', e.target.value)}
-            placeholder="Full story body (one paragraph per line)"
-            rows={6}
-            required
-          />
-
-          <label className="admin-checkbox">
-            <input
-              type="checkbox"
-              checked={postForm.featured}
-              onChange={(e) => handlePostFormChange('featured', e.target.checked)}
-            />
-            Mark as featured
-          </label>
-
-          <button type="submit">Save Post</button>
-        </form>
-
-        <div className="admin-post-list">
-          <h4>Saved Admin Posts ({adminPosts.length})</h4>
-          {adminPosts.length === 0 ? (
-            <p>No admin posts yet.</p>
-          ) : (
-            <ul>
-              {adminPosts.map((post) => (
-                <li key={post.id}>
-                  <div>
-                    <strong>{post.title}</strong>
-                    <p>
-                      {post.category} | {post.author} | {post.date}
-                    </p>
+                  <div className="admin-profile-actions">
+                    <button type="submit">Save Profile</button>
+                    <button type="button" className="btn-secondary" onClick={handleCancelProfileEdit}>
+                      Cancel
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    className="btn-danger"
-                    onClick={() => handleDeletePost(post.id)}
-                  >
-                    Delete
-                  </button>
-                </li>
-              ))}
-            </ul>
+                </form>
+              ) : (
+                <div className="admin-profile-view">
+                  <p>
+                    <strong>Name:</strong> {profile.fullName}
+                  </p>
+                  <p>
+                    <strong>Email:</strong> {profile.email}
+                  </p>
+                  <p>
+                    <strong>Role:</strong> {profile.role}
+                  </p>
+                  <p>
+                    <strong>Bio:</strong> {profile.bio}
+                  </p>
+                </div>
+              )}
+            </section>
           )}
-        </div>
-      </section>
 
-      <section className="admin-quick-links" aria-label="Admin quick links">
-        <h3>Quick Access</h3>
-        <div>
-          <Link to="/">View Landing Page</Link>
-          {managedCategories.map((cat) => (
-            <Link key={cat} to={getCategoryPath(cat)}>
-              {cat} Section
-            </Link>
-          ))}
-        </div>
-      </section>
+          {activeSection === 'categories' && (
+            <section className="admin-categories" aria-label="Categories management">
+              <h3>Categories Management</h3>
+              <form className="admin-categories-form" onSubmit={handleAddCategory}>
+                <input
+                  type="text"
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                  placeholder="Add new category"
+                />
+                <button type="submit">Add Category</button>
+              </form>
 
-      <section className="admin-settings" aria-label="Admin settings">
-        <h3>Admin Settings</h3>
-        <form className="admin-settings-form" onSubmit={handleSaveSettings}>
-          <label htmlFor="siteNameInput">Website Name</label>
-          <input
-            id="siteNameInput"
-            type="text"
-            value={settings.siteName}
-            onChange={(e) => handleSettingChange('siteName', e.target.value)}
-            required
-          />
+              <ul className="admin-categories-list">
+                {managedCategories.map((cat) => (
+                  <li key={cat}>
+                    {editingCategory === cat ? (
+                      <>
+                        <input
+                          type="text"
+                          value={editingValue}
+                          onChange={(e) => setEditingValue(e.target.value)}
+                          aria-label={`Edit category ${cat}`}
+                        />
+                        <button type="button" onClick={saveEditing}>Save</button>
+                        <button
+                          type="button"
+                          className="btn-secondary"
+                          onClick={() => {
+                            setEditingCategory(null)
+                            setEditingValue('')
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <span>{cat}</span>
+                        <button type="button" onClick={() => startEditing(cat)}>Edit</button>
+                        <button
+                          type="button"
+                          className="btn-danger"
+                          onClick={() => handleDeleteCategory(cat)}
+                        >
+                          Delete
+                        </button>
+                      </>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
-          <label htmlFor="siteTaglineInput">Website Tagline</label>
-          <textarea
-            id="siteTaglineInput"
-            rows={2}
-            value={settings.siteTagline}
-            onChange={(e) => handleSettingChange('siteTagline', e.target.value)}
-          />
+          {activeSection === 'posts' && (
+            <section className="admin-post-editor" aria-label="News post editor">
+              <h3>News Post Editor</h3>
+              <form className="admin-post-form" onSubmit={handleCreatePost}>
+                <input
+                  type="text"
+                  value={postForm.title}
+                  onChange={(e) => handlePostFormChange('title', e.target.value)}
+                  placeholder="Post title"
+                  required
+                />
 
-          <label htmlFor="contactEmailInput">Contact Email</label>
-          <input
-            id="contactEmailInput"
-            type="email"
-            value={settings.contactEmail}
-            onChange={(e) => handleSettingChange('contactEmail', e.target.value)}
-          />
+                <select
+                  value={postForm.category}
+                  onChange={(e) => handlePostFormChange('category', e.target.value)}
+                >
+                  {managedCategories.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
 
-          <label htmlFor="copyrightInput">Footer Copyright Text</label>
-          <input
-            id="copyrightInput"
-            type="text"
-            value={settings.copyrightText}
-            onChange={(e) => handleSettingChange('copyrightText', e.target.value)}
-          />
+                <input
+                  type="text"
+                  value={postForm.author}
+                  onChange={(e) => handlePostFormChange('author', e.target.value)}
+                  placeholder="Author"
+                />
 
-          <div className="admin-settings-actions">
-            <button type="submit">Save Settings</button>
-            <button type="button" className="btn-secondary" onClick={handleResetSettings}>
-              Reset Defaults
-            </button>
-          </div>
-        </form>
-      </section>
+                <input
+                  type="text"
+                  value={postForm.readTime}
+                  onChange={(e) => handlePostFormChange('readTime', e.target.value)}
+                  placeholder="Read time (e.g. 4 min)"
+                />
+
+                <input
+                  type="url"
+                  value={postForm.image}
+                  onChange={(e) => handlePostFormChange('image', e.target.value)}
+                  placeholder="Image URL (optional)"
+                />
+
+                <textarea
+                  value={postForm.summary}
+                  onChange={(e) => handlePostFormChange('summary', e.target.value)}
+                  placeholder="Short summary"
+                  rows={3}
+                  required
+                />
+
+                <textarea
+                  value={postForm.body}
+                  onChange={(e) => handlePostFormChange('body', e.target.value)}
+                  placeholder="Full story body (one paragraph per line)"
+                  rows={6}
+                  required
+                />
+
+                <label className="admin-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={postForm.featured}
+                    onChange={(e) => handlePostFormChange('featured', e.target.checked)}
+                  />
+                  Mark as featured
+                </label>
+
+                <button type="submit">Save Post</button>
+              </form>
+
+              <div className="admin-post-list">
+                <h4>Saved Admin Posts ({adminPosts.length})</h4>
+                {adminPosts.length === 0 ? (
+                  <p>No admin posts yet.</p>
+                ) : (
+                  <ul>
+                    {adminPosts.map((post) => (
+                      <li key={post.id}>
+                        <div>
+                          <strong>{post.title}</strong>
+                          <p>
+                            {post.category} | {post.author} | {post.date}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          className="btn-danger"
+                          onClick={() => handleDeletePost(post.id)}
+                        >
+                          Delete
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </section>
+          )}
+
+          {activeSection === 'quick-links' && (
+            <section className="admin-quick-links" aria-label="Admin quick links">
+              <h3>Quick Access</h3>
+              <div>
+                <Link to="/">View Landing Page</Link>
+                {managedCategories.map((cat) => (
+                  <Link key={cat} to={getCategoryPath(cat)}>
+                    {cat} Section
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {activeSection === 'settings' && (
+            <section className="admin-settings" aria-label="Admin settings">
+              <h3>Admin Settings</h3>
+              <form className="admin-settings-form" onSubmit={handleSaveSettings}>
+                <label htmlFor="siteNameInput">Website Name</label>
+                <input
+                  id="siteNameInput"
+                  type="text"
+                  value={settings.siteName}
+                  onChange={(e) => handleSettingChange('siteName', e.target.value)}
+                  required
+                />
+
+                <label htmlFor="siteTaglineInput">Website Tagline</label>
+                <textarea
+                  id="siteTaglineInput"
+                  rows={2}
+                  value={settings.siteTagline}
+                  onChange={(e) => handleSettingChange('siteTagline', e.target.value)}
+                />
+
+                <label htmlFor="contactEmailInput">Contact Email</label>
+                <input
+                  id="contactEmailInput"
+                  type="email"
+                  value={settings.contactEmail}
+                  onChange={(e) => handleSettingChange('contactEmail', e.target.value)}
+                />
+
+                <label htmlFor="copyrightInput">Footer Copyright Text</label>
+                <input
+                  id="copyrightInput"
+                  type="text"
+                  value={settings.copyrightText}
+                  onChange={(e) => handleSettingChange('copyrightText', e.target.value)}
+                />
+
+                <div className="admin-settings-actions">
+                  <button type="submit">Save Settings</button>
+                  <button type="button" className="btn-secondary" onClick={handleResetSettings}>
+                    Reset Defaults
+                  </button>
+                </div>
+              </form>
+            </section>
+          )}
+        </section>
+      </div>
     </main>
   )
 }
