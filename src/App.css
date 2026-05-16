@@ -1622,6 +1622,62 @@ blockquote {
   display: none;
 }
 
+.post-media-library {
+  border-top: 1px solid var(--editor-line);
+  padding: 0.85rem;
+  background: var(--editor-bg);
+}
+
+.post-media-library-head h4 {
+  margin: 0;
+}
+
+.post-media-library-head p {
+  margin: 0.2rem 0 0.7rem;
+  color: var(--editor-muted);
+  font-size: 0.85rem;
+}
+
+.post-media-empty {
+  margin: 0;
+  color: var(--editor-muted);
+  font-size: 0.88rem;
+}
+
+.post-media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.6rem;
+}
+
+.post-media-card {
+  border: 1px solid var(--editor-line);
+  border-radius: 10px;
+  padding: 0.55rem;
+  background: var(--editor-surface);
+  display: grid;
+  gap: 0.35rem;
+}
+
+.post-media-card p,
+.post-media-card small {
+  margin: 0;
+}
+
+.post-media-preview {
+  border-radius: 8px;
+  overflow: hidden;
+  background: #0f1722;
+}
+
+.post-media-preview img,
+.post-media-preview video {
+  width: 100%;
+  height: 130px;
+  object-fit: cover;
+  display: block;
+}
+
 .post-editor-canvas-wrap {
   background: var(--editor-surface);
   min-height: 58vh;

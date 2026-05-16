@@ -10,6 +10,7 @@ import {
   ChevronDown,
   Code2,
   Eye,
+  Film,
   Image as ImageIcon,
   Italic,
   Palette,
@@ -122,11 +123,13 @@ export default function AdminPostsPage() {
     () => localStorage.getItem(THEME_STORAGE_KEY) || 'light',
   )
   const [editorHTML, setEditorHTML] = useState('<p></p>')
+  const [mediaItems, setMediaItems] = useState([])
   const [lastSavedAt, setLastSavedAt] = useState(null)
 
   const editorNodeRef = useRef(null)
   const quillRef = useRef(null)
   const imageInputRef = useRef(null)
+  const videoInputRef = useRef(null)
 
   const sanitizedPreviewHTML = useMemo(() => cleanHTML(editorHTML), [editorHTML])
   const filteredPosts = useMemo(() => {
@@ -148,6 +151,7 @@ export default function AdminPostsPage() {
       setCategory(draft.category || managedCategories[0] || 'World')
       setAuthor(draft.author || 'worldgistnews')
       setEditorHTML(draft.content || '<p></p>')
+      setMediaItems(Array.isArray(draft.mediaItems) ? draft.mediaItems : [])
       setLastSavedAt(draft.savedAt ? new Date(draft.savedAt) : null)
     }
   }, [managedCategories])
@@ -184,6 +188,7 @@ export default function AdminPostsPage() {
         category,
         author,
         content: editorHTML,
+        mediaItems,
         savedAt: new Date().toISOString(),
       }
       localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft))
@@ -191,7 +196,7 @@ export default function AdminPostsPage() {
     }, 700)
 
     return () => clearTimeout(timeout)
-  }, [title, category, author, editorHTML, autosaveEnabled])
+  }, [title, category, author, editorHTML, mediaItems, autosaveEnabled])
 
   useEffect(() => {
     localStorage.setItem(THEME_STORAGE_KEY, themeMode)
@@ -256,19 +261,71 @@ export default function AdminPostsPage() {
     imageInputRef.current?.click()
   }
 
-  const handleImageChange = (event) => {
-    const file = event.target.files?.[0]
-    if (!file || !quillRef.current) return
+  const handleVideoPick = () => {
+    videoInputRef.current?.click()
+  }
 
+  const fileToDataUrl = (file) => new Promise((resolve, reject) => {
     const reader = new FileReader()
-    reader.onload = () => {
-      const range = quillRef.current.getSelection(true)
-      const index = range ? range.index : quillRef.current.getLength()
-      quillRef.current.insertEmbed(index, 'image', reader.result)
-      quillRef.current.setSelection(index + 1)
-    }
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = () => reject(new Error('Unable to read media file'))
     reader.readAsDataURL(file)
+  })
+
+  const ingestMediaFiles = async (files, type) => {
+    if (!files || files.length === 0) return
+
+    const maxSize = type === 'video' ? 25 * 1024 * 1024 : 8 * 1024 * 1024
+    const acceptedPrefix = `${type}/`
+    const accepted = [...files].filter((file) => file.type.startsWith(acceptedPrefix) && file.size <= maxSize)
+
+    if (accepted.length === 0) {
+      alert(`No valid ${type} files selected. Max size is ${Math.floor(maxSize / (1024 * 1024))}MB.`)
+      return
+    }
+
+    const nextItems = await Promise.all(
+      accepted.map(async (file) => ({
+        id: crypto.randomUUID(),
+        name: file.name,
+        type,
+        size: file.size,
+        src: await fileToDataUrl(file),
+      })),
+    )
+
+    setMediaItems((prev) => [...nextItems, ...prev])
+  }
+
+  const handleImageChange = async (event) => {
+    await ingestMediaFiles(event.target.files, 'image')
     event.target.value = ''
+  }
+
+  const handleVideoChange = async (event) => {
+    await ingestMediaFiles(event.target.files, 'video')
+    event.target.value = ''
+  }
+
+  const insertMediaIntoEditor = (item) => {
+    if (!quillRef.current) return
+
+    const range = quillRef.current.getSelection(true)
+    const index = range ? range.index : quillRef.current.getLength()
+
+    if (item.type === 'image') {
+      quillRef.current.insertEmbed(index, 'image', item.src)
+      quillRef.current.setSelection(index + 1)
+      return
+    }
+
+    const videoMarkup = `<p><video controls src="${item.src}" style="max-width:100%;border-radius:10px;"></video></p>`
+    quillRef.current.clipboard.dangerouslyPasteHTML(index, videoMarkup)
+    quillRef.current.setSelection(index + 1)
+  }
+
+  const removeMediaItem = (mediaId) => {
+    setMediaItems((prev) => prev.filter((item) => item.id !== mediaId))
   }
 
   const toggleHTMLMode = () => {
@@ -508,6 +565,9 @@ export default function AdminPostsPage() {
         <button type="button" className="toolbar-icon-btn" title="Upload image" onClick={handleImagePick}>
           <ImageIcon size={16} />
         </button>
+        <button type="button" className="toolbar-icon-btn" title="Upload video" onClick={handleVideoPick}>
+          <Film size={16} />
+        </button>
         <button type="button" className="toolbar-icon-btn" title="HTML mode" onClick={toggleHTMLMode}>
           <Code2 size={16} />
         </button>
@@ -585,9 +645,52 @@ export default function AdminPostsPage() {
         ref={imageInputRef}
         type="file"
         accept="image/*"
+        multiple
         className="post-image-input"
         onChange={handleImageChange}
       />
+      <input
+        ref={videoInputRef}
+        type="file"
+        accept="video/*"
+        multiple
+        className="post-image-input"
+        onChange={handleVideoChange}
+      />
+
+      <section className="post-media-library" aria-label="Uploaded media">
+        <div className="post-media-library-head">
+          <h4>Media Uploads ({mediaItems.length})</h4>
+          <p>Upload images/videos and insert directly into post content.</p>
+        </div>
+        {mediaItems.length === 0 ? (
+          <p className="post-media-empty">No media uploaded yet.</p>
+        ) : (
+          <div className="post-media-grid">
+            {mediaItems.map((item) => (
+              <article key={item.id} className="post-media-card">
+                <div className="post-media-preview">
+                  {item.type === 'image' ? (
+                    <img src={item.src} alt={item.name} />
+                  ) : (
+                    <video src={item.src} controls preload="metadata" />
+                  )}
+                </div>
+                <p>{item.name}</p>
+                <small>{item.type.toUpperCase()} | {(item.size / (1024 * 1024)).toFixed(2)}MB</small>
+                <div className="admin-post-item-actions">
+                  <button type="button" onClick={() => insertMediaIntoEditor(item)}>
+                    Insert
+                  </button>
+                  <button type="button" className="btn-danger" onClick={() => removeMediaItem(item.id)}>
+                    Remove
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
 
       {htmlMode ? (
         <textarea
