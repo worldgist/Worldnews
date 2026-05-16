@@ -274,6 +274,7 @@ export default function ArticlePage() {
               target="_blank"
               rel="noreferrer"
             >
+              <img src="/facebook.png" alt="" aria-hidden="true" />
               Facebook
             </a>
             <a
@@ -282,6 +283,7 @@ export default function ArticlePage() {
               target="_blank"
               rel="noreferrer"
             >
+              <img src="/whatsapp.png" alt="" aria-hidden="true" />
               WhatsApp
             </a>
             <a
@@ -290,6 +292,7 @@ export default function ArticlePage() {
               target="_blank"
               rel="noreferrer"
             >
+              <img src="/x.png" alt="" aria-hidden="true" />
               X
             </a>
             <a
@@ -299,6 +302,7 @@ export default function ArticlePage() {
               rel="noreferrer"
               title="Open Instagram and paste this article link"
             >
+              <img src="/instagram.png" alt="" aria-hidden="true" />
               Instagram
             </a>
           </div>
