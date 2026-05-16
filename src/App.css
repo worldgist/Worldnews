@@ -382,6 +382,18 @@ img {
   animation: scroll-x 26s linear infinite;
 }
 
+.landing-feed-status {
+  margin: 0.75rem 0 0;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.landing-feed-status--live {
+  color: #1d7ec8;
+  font-weight: 600;
+}
+
 .landing-alert {
   margin: 1rem 0 0.8rem;
   background: #ebe7d2;
@@ -413,11 +425,14 @@ img {
   gap: 0.35rem;
 }
 
-.landing-alert__controls span {
+.landing-alert__controls button {
   border: 1px solid #d2ccb0;
   padding: 0.08rem 0.45rem;
   border-radius: 4px;
   color: #3f3f3f;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
 }
 
 .readmore-strip {
@@ -783,6 +798,13 @@ h3 {
 .section-head a {
   font-family: 'Space Grotesk', sans-serif;
   color: var(--muted);
+}
+
+.section-head .section-lede {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  max-width: 42rem;
 }
 
 .section-head h2 {
@@ -1193,6 +1215,13 @@ h3 {
   background: var(--ink);
   color: #fff;
   cursor: pointer;
+}
+
+.newsletter-status {
+  grid-column: 1 / -1;
+  margin: 0.35rem 0 0;
+  font-size: 0.9rem;
+  color: var(--muted);
 }
 
 /* ── Footer (landing) ─────────────────────────────────────────── */
@@ -1639,6 +1668,21 @@ h3 {
 .story-full h2 {
   margin: 0 0 0.35rem;
   font-size: 1.3rem;
+}
+
+.story-body-html {
+  line-height: 1.75;
+}
+
+.story-body-html p {
+  margin: 0.8rem 0;
+}
+
+.story-body-html img,
+.story-body-html video {
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
 }
 
 .story-facts {

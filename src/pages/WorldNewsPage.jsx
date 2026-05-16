@@ -1,12 +1,14 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import NewsCard from '../components/NewsCard'
 import PostPagination, { STORIES_PER_PAGE } from '../components/PostPagination'
-import { getByCategory } from '../data/feed'
+import { getPublicByCategory } from '../data/publicFeed'
+import { useFeedSync } from '../hooks/useFeedSync'
 
 export default function WorldNewsPage() {
   const [currentPage, setCurrentPage] = useState(1)
-  const stories = getByCategory('World')
+  const feedSync = useFeedSync()
+  const stories = useMemo(() => getPublicByCategory('World'), [feedSync])
   const totalPages = Math.max(1, Math.ceil(stories.length / STORIES_PER_PAGE))
   const start = (currentPage - 1) * STORIES_PER_PAGE
   const paginatedStories = stories.slice(start, start + STORIES_PER_PAGE)

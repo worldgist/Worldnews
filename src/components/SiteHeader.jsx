@@ -1,38 +1,24 @@
-import { useEffect, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { tickerItems, categories } from '../data/feed'
-
-const SETTINGS_STORAGE_KEY = 'worldnews-admin-settings'
-const DEFAULT_SITE_NAME = 'World Gist News'
+import { useSiteSettings } from '../hooks/useSiteSettings'
+import { useFeedSync } from '../hooks/useFeedSync'
+import { getPublicTickerLines } from '../data/publicFeed'
 
 export default function SiteHeader() {
+  const { categories: navCategories, settings } = useSiteSettings()
+  const feedSync = useFeedSync()
   const [menuOpen, setMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [siteName, setSiteName] = useState(DEFAULT_SITE_NAME)
+  const siteName = settings.siteName?.trim() || 'World Gist News'
+  const tickerLines = useMemo(() => {
+    const lines = getPublicTickerLines(8)
+    if (lines.length > 0) return lines
+    const tagline = settings.siteTagline?.trim()
+    return tagline ? [tagline] : [`${siteName} — latest headlines`]
+  }, [feedSync, settings.siteTagline, siteName])
   const location = useLocation()
   const navigate = useNavigate()
   const isLandingPage = location.pathname === '/'
-
-  useEffect(() => {
-    const syncSettings = () => {
-      try {
-        const saved = localStorage.getItem(SETTINGS_STORAGE_KEY)
-        if (!saved) {
-          setSiteName(DEFAULT_SITE_NAME)
-          return
-        }
-
-        const parsed = JSON.parse(saved)
-        setSiteName(parsed?.siteName?.trim() || DEFAULT_SITE_NAME)
-      } catch {
-        setSiteName(DEFAULT_SITE_NAME)
-      }
-    }
-
-    syncSettings()
-    window.addEventListener('storage', syncSettings)
-    return () => window.removeEventListener('storage', syncSettings)
-  }, [])
 
   const closeMenu = () => setMenuOpen(false)
 
@@ -162,7 +148,7 @@ export default function SiteHeader() {
               >
                 Trending
               </NavLink>
-              {categories.map((cat) => (
+              {navCategories.map((cat) => (
                 <NavLink
                   key={cat}
                   to={`/category/${cat.toLowerCase()}`}
@@ -264,7 +250,7 @@ export default function SiteHeader() {
 
       <div className="ticker" role="status" aria-live="polite">
         <div className="ticker-track">
-          {[...tickerItems, ...tickerItems].map((line, index) => (
+          {[...tickerLines, ...tickerLines].map((line, index) => (
             <span key={`${line}-${index}`}>• {line}</span>
           ))}
         </div>

@@ -1,18 +1,25 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import NewsCard from '../components/NewsCard'
 import PostPagination, { STORIES_PER_PAGE } from '../components/PostPagination'
-import { getByCategory, categories } from '../data/feed'
+import { getPublicByCategory, getPublicCategories } from '../data/publicFeed'
+import { useFeedSync } from '../hooks/useFeedSync'
 
 export default function CategoryPage() {
   const { slug } = useParams()
   const [currentPage, setCurrentPage] = useState(1)
+  const feedSync = useFeedSync()
+
+  const categories = useMemo(() => getPublicCategories(), [feedSync])
 
   const canonicalCategory = categories.find(
     (c) => c.toLowerCase() === slug?.toLowerCase()
   )
 
-  const stories = canonicalCategory ? getByCategory(canonicalCategory) : []
+  const stories = useMemo(
+    () => (canonicalCategory ? getPublicByCategory(canonicalCategory) : []),
+    [canonicalCategory, feedSync],
+  )
 
   useEffect(() => {
     setCurrentPage(1)

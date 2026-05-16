@@ -44,7 +44,7 @@ export default function ContactPage() {
 
   const isValid = Object.keys(errors).length === 0
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     setTouched(true)
     if (!isValid) {
@@ -60,16 +60,14 @@ export default function ContactPage() {
       consent,
       to: settings.contactEmail,
     }
-    logPublicFormSubmission('contact', payload)
-    window.setTimeout(() => {
-      setStatus('success')
-      setName('')
-      setEmail('')
-      setTopic('general')
-      setMessage('')
-      setConsent(false)
-      setTouched(false)
-    }, 450)
+    await logPublicFormSubmission('contact', payload)
+    setStatus('success')
+    setName('')
+    setEmail('')
+    setTopic('general')
+    setMessage('')
+    setConsent(false)
+    setTouched(false)
   }
 
   return (
@@ -132,8 +130,8 @@ export default function ContactPage() {
         <div className="page-panel">
           <h2 className="page-panel-title">Send a message</h2>
           <p className="page-panel-sub">
-            A copy of this submission is stored locally in your browser for demo purposes. Replace with email or CRM in
-            production.
+            Messages are saved to Supabase when configured (with a local fallback if needed). We typically route replies through
+            the email addresses listed on this page.
           </p>
           {status === 'success' ? (
             <div className="form-success" role="status">
@@ -220,7 +218,7 @@ export default function ContactPage() {
                 <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
                 <span>
                   I agree that {settings.siteName} may respond to this message using the email address above. See{' '}
-                  <Link to="/terms-and-conditions">terms</Link> for details on data use in this demo build.
+                  <Link to="/terms-and-conditions">terms</Link> for details on data use.
                 </span>
               </label>
               {touched && errors.consent ? <span className="field-error">{errors.consent}</span> : null}

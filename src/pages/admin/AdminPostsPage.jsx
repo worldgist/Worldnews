@@ -23,6 +23,7 @@ import {
   Undo2,
 } from 'lucide-react'
 import { loadCategories, loadPosts, savePosts } from '../../admin/storage'
+import { uploadCmsMediaFile } from '../../lib/cmsStorage'
 import 'quill/dist/quill.snow.css'
 
 const DRAFT_STORAGE_KEY = 'worldnews-admin-editor-draft'
@@ -102,6 +103,21 @@ function formatTimeOnly(isoString) {
     hour: 'numeric',
     minute: '2-digit',
   })
+}
+
+const DEFAULT_POST_IMAGE =
+  'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=900&q=80'
+
+function firstImageSrcFromHtml(html) {
+  try {
+    const doc = new DOMParser().parseFromString(html, 'text/html')
+    const img = doc.querySelector('img[src]')
+    const raw = img?.getAttribute('src')?.trim()
+    if (!raw) return null
+    return raw
+  } catch {
+    return null
+  }
 }
 
 export default function AdminPostsPage() {
@@ -284,14 +300,36 @@ export default function AdminPostsPage() {
       return
     }
 
+    let warnedFallback = false
     const nextItems = await Promise.all(
-      accepted.map(async (file) => ({
-        id: crypto.randomUUID(),
-        name: file.name,
-        type,
-        size: file.size,
-        src: await fileToDataUrl(file),
-      })),
+      accepted.map(async (file) => {
+        const id = crypto.randomUUID()
+        let src
+        let storagePath = null
+        try {
+          const result = await uploadCmsMediaFile(file, type)
+          src = result.publicUrl
+          storagePath = result.path
+        } catch (err) {
+          console.warn('Supabase Storage upload failed, using embedded data URL:', err)
+          if (!warnedFallback) {
+            warnedFallback = true
+            alert(
+              `Could not upload to Supabase Storage (${err?.message || 'unknown error'}). Using embedded copies instead; sign in with Supabase and ensure the cms-media bucket exists.`,
+            )
+          }
+          src = await fileToDataUrl(file)
+        }
+
+        return {
+          id,
+          name: file.name,
+          type,
+          size: file.size,
+          src,
+          storagePath,
+        }
+      }),
     )
 
     setMediaItems((prev) => [...nextItems, ...prev])
@@ -319,7 +357,8 @@ export default function AdminPostsPage() {
       return
     }
 
-    const videoMarkup = `<p><video controls src="${item.src}" style="max-width:100%;border-radius:10px;"></video></p>`
+    const safeVideoSrc = item.src.replace(/"/g, '&quot;')
+    const videoMarkup = `<p><video controls src="${safeVideoSrc}" style="max-width:100%;border-radius:10px;"></video></p>`
     quillRef.current.clipboard.dangerouslyPasteHTML(index, videoMarkup)
     quillRef.current.setSelection(index + 1)
   }
@@ -400,8 +439,7 @@ export default function AdminPostsPage() {
       author: author.trim() || 'worldgistnews',
       date: formatDateLabel(publishDate),
       readTime: estimateReadTime(plain),
-      image:
-        'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=900&q=80',
+      image: firstImageSrcFromHtml(clean) || DEFAULT_POST_IMAGE,
       featured: false,
       htmlContent: clean,
       status: isScheduled ? 'scheduled' : 'published',
@@ -661,7 +699,7 @@ export default function AdminPostsPage() {
       <section className="post-media-library" aria-label="Uploaded media">
         <div className="post-media-library-head">
           <h4>Media Uploads ({mediaItems.length})</h4>
-          <p>Upload images/videos and insert directly into post content.</p>
+          <p>Upload images or videos: signed-in editors send files to Supabase Storage; otherwise they stay embedded in the draft only.</p>
         </div>
         {mediaItems.length === 0 ? (
           <p className="post-media-empty">No media uploaded yet.</p>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { supabase } from '../lib/supabaseClient'
 
 const ADMIN_USER = 'admin'
 const ADMIN_PASS = 'worldnews123'
@@ -12,8 +13,24 @@ export default function AdminLoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    setError('')
+
+    if (supabase) {
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: username.trim(),
+        password,
+      })
+      if (!authError) {
+        localStorage.setItem(ADMIN_AUTH_KEY, 'true')
+        const nextPath = location.state?.from?.pathname || '/admin/overview'
+        navigate(nextPath, { replace: true })
+        return
+      }
+      setError(authError.message || 'Could not sign in. Check email and password.')
+      return
+    }
 
     if (username.trim() === ADMIN_USER && password === ADMIN_PASS) {
       localStorage.setItem(ADMIN_AUTH_KEY, 'true')
@@ -32,13 +49,14 @@ export default function AdminLoginPage() {
       <p>Sign in to access the World Gist News admin dashboard.</p>
 
       <form className="admin-auth-form" onSubmit={handleSubmit}>
-        <label htmlFor="adminUsername">Username</label>
+        <label htmlFor="adminUsername">{supabase ? 'Email address' : 'Username'}</label>
         <input
           id="adminUsername"
-          type="text"
+          type={supabase ? 'email' : 'text'}
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          placeholder="Enter username"
+          placeholder={supabase ? 'you@company.com' : 'Enter username'}
+          autoComplete={supabase ? 'email' : 'username'}
           required
         />
 
@@ -49,6 +67,7 @@ export default function AdminLoginPage() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Enter password"
+          autoComplete="current-password"
           required
         />
 
@@ -57,9 +76,16 @@ export default function AdminLoginPage() {
         <button type="submit">Login</button>
       </form>
 
-      <p className="admin-auth-hint">
-        Demo credentials: <strong>admin</strong> / <strong>worldnews123</strong>
-      </p>
+      {supabase ? (
+        <p className="admin-auth-hint">
+          Use a user from <strong>Supabase → Authentication → Users</strong> (email sign-in). Create one there if you have
+          not already.
+        </p>
+      ) : (
+        <p className="admin-auth-hint">
+          Demo credentials (no Supabase env): <strong>admin</strong> / <strong>worldnews123</strong>
+        </p>
+      )}
 
       <Link className="read-more" to="/">
         Back to homepage

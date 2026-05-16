@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { supabase } from '../../lib/supabaseClient'
 import {
-  PUBLIC_FORM_LOG_STORAGE_KEY,
   PUBLIC_FORM_LOG_UPDATED_EVENT,
   clearPublicFormLog,
-  loadPublicFormLog,
+  loadPublicFormLogMerged,
   removePublicFormEntry,
 } from '../../utils/publicForms'
 
@@ -36,20 +36,27 @@ function typeBadgeClass(type) {
 }
 
 export default function AdminFormInboxPage() {
-  const [entries, setEntries] = useState(() => loadPublicFormLog())
+  const [entries, setEntries] = useState([])
   const [filter, setFilter] = useState('all')
   const [expanded, setExpanded] = useState(() => new Set())
   const [message, setMessage] = useState('')
   const [copyId, setCopyId] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  const refresh = useCallback(() => {
-    setEntries(loadPublicFormLog())
+  const refresh = useCallback(async () => {
+    setLoading(true)
+    try {
+      const list = await loadPublicFormLogMerged()
+      setEntries(list)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
   useEffect(() => {
     refresh()
     const onStorage = (e) => {
-      if (e.key === PUBLIC_FORM_LOG_STORAGE_KEY || e.key === null) refresh()
+      if (e.key === 'worldnews-public-form-log' || e.key === null) refresh()
     }
     window.addEventListener('storage', onStorage)
     window.addEventListener(PUBLIC_FORM_LOG_UPDATED_EVENT, refresh)
@@ -85,18 +92,18 @@ export default function AdminFormInboxPage() {
     }
   }
 
-  const handleDelete = (id) => {
-    removePublicFormEntry(id)
-    refresh()
+  const handleDelete = async (id) => {
+    await removePublicFormEntry(id)
     setMessage('Entry removed.')
+    await refresh()
   }
 
-  const handleClearAll = () => {
-    if (!window.confirm('Remove all stored form submissions from this browser?')) return
-    clearPublicFormLog()
-    refresh()
+  const handleClearAll = async () => {
+    if (!window.confirm('Remove all form submissions? (Supabase + local cache)')) return
+    await clearPublicFormLog()
     setExpanded(new Set())
     setMessage('Inbox cleared.')
+    await refresh()
   }
 
   return (
@@ -105,8 +112,18 @@ export default function AdminFormInboxPage() {
         <div>
           <h2>Form inbox</h2>
           <p className="admin-form-inbox-lead">
-            Submissions from Contact, Advertise, and Submit news are stored locally for this demo. Connect these forms to
-            email or a backend to replace this log.
+            {supabase ? (
+              <>
+                Submissions from Contact, Advertise, and Submit news are stored in Supabase. You must sign in with{' '}
+                <strong>Supabase Auth</strong> (same admin email/password as the dashboard login) to load and delete server
+                rows. Without a session, only a local browser cache is shown.
+              </>
+            ) : (
+              <>
+                Add <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> to use cloud storage. Until then,
+                entries are kept only in this browser.
+              </>
+            )}
           </p>
         </div>
         <div className="admin-form-inbox-toolbar">
@@ -132,10 +149,14 @@ export default function AdminFormInboxPage() {
         </p>
       ) : null}
 
-      {filtered.length === 0 ? (
+      {loading ? (
+        <p className="admin-form-inbox-empty">Loading inbox…</p>
+      ) : filtered.length === 0 ? (
         <div className="admin-form-inbox-empty">
           <p>{entries.length === 0 ? 'No submissions yet.' : 'No entries match this filter.'}</p>
-          <p className="admin-form-inbox-empty-hint">Submit a form on the public site, then return here — updates appear instantly.</p>
+          <p className="admin-form-inbox-empty-hint">
+            {supabase ? 'Submit a public form, then refresh — ensure you are logged in with Supabase to see cloud data.' : null}
+          </p>
         </div>
       ) : (
         <ul className="admin-form-inbox-list">

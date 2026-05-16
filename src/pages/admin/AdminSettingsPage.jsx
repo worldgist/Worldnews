@@ -1,6 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
 import { articles } from '../../data/feed'
 import { DEFAULT_SETTINGS, loadPosts, loadSettings, saveSettings } from '../../admin/storage'
+import { supabase } from '../../lib/supabaseClient'
+import {
+  fetchAllCommentsGroupedByArticle,
+  rowsToNestedComments,
+  deleteCommentsForArticle,
+  deleteCommentById,
+  setCommentHidden,
+  deleteAllComments,
+} from '../../lib/articleCommentsSupabase'
 
 const COMMENTS_PREFIX = 'worldnews-comments-'
 
@@ -26,7 +35,35 @@ export default function AdminSettingsPage() {
     }, {})
   }, [])
 
-  const refreshCommentThreads = () => {
+  const refreshCommentThreads = async () => {
+    if (supabase) {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      if (session) {
+        const grouped = await fetchAllCommentsGroupedByArticle()
+        if (grouped) {
+          const threads = []
+          for (const [articleId, rows] of grouped) {
+            const nested = rowsToNestedComments(rows)
+            const repliesCount = nested.reduce((count, item) => count + (item.replies?.length || 0), 0)
+            threads.push({
+              key: `supabase:${articleId}`,
+              articleId,
+              backend: 'supabase',
+              title: titleLookup[articleId] || `Article: ${articleId}`,
+              comments: nested,
+              commentsCount: nested.length,
+              repliesCount,
+            })
+          }
+          threads.sort((a, b) => b.commentsCount + b.repliesCount - (a.commentsCount + a.repliesCount))
+          setCommentThreads(threads)
+          return
+        }
+      }
+    }
+
     const threads = []
     for (let index = 0; index < localStorage.length; index += 1) {
       const key = localStorage.key(index)
@@ -40,6 +77,7 @@ export default function AdminSettingsPage() {
       threads.push({
         key,
         articleId,
+        backend: 'local',
         title: titleLookup[articleId] || `Article: ${articleId}`,
         comments,
         commentsCount: comments.length,
@@ -47,9 +85,7 @@ export default function AdminSettingsPage() {
       })
     }
 
-    setCommentThreads(
-      threads.sort((a, b) => b.commentsCount + b.repliesCount - (a.commentsCount + a.repliesCount)),
-    )
+    setCommentThreads(threads.sort((a, b) => b.commentsCount + b.repliesCount - (a.commentsCount + a.repliesCount)))
   }
 
   useEffect(() => {
@@ -80,41 +116,65 @@ export default function AdminSettingsPage() {
     setMessage('Settings reset to defaults.')
   }
 
-  const handleDeleteThread = (threadKey) => {
-    localStorage.removeItem(threadKey)
-    refreshCommentThreads()
+  const handleDeleteThread = async (thread) => {
+    if (thread.backend === 'supabase') {
+      await deleteCommentsForArticle(thread.articleId)
+    } else {
+      localStorage.removeItem(thread.key)
+    }
+    await refreshCommentThreads()
     setMessage('Comment thread removed successfully.')
   }
 
-  const handleDeleteSingleComment = (threadKey, commentId) => {
-    const comments = safeParseComments(localStorage.getItem(threadKey))
-    const next = comments.filter((comment) => comment.id !== commentId)
-
-    if (next.length === 0) {
-      localStorage.removeItem(threadKey)
+  const handleDeleteSingleComment = async (thread, commentId) => {
+    if (thread.backend === 'supabase') {
+      await deleteCommentById(commentId)
     } else {
-      localStorage.setItem(threadKey, JSON.stringify(next))
+      const comments = safeParseComments(localStorage.getItem(thread.key))
+      const next = comments.filter((comment) => comment.id !== commentId)
+
+      if (next.length === 0) {
+        localStorage.removeItem(thread.key)
+      } else {
+        localStorage.setItem(thread.key, JSON.stringify(next))
+      }
     }
 
-    refreshCommentThreads()
+    await refreshCommentThreads()
     setMessage('Comment deleted successfully.')
   }
 
-  const handleToggleCommentStatus = (threadKey, commentId) => {
-    const comments = safeParseComments(localStorage.getItem(threadKey))
-    const next = comments.map((comment) => {
-      if (comment.id !== commentId) return comment
-      return { ...comment, isClosed: !comment.isClosed }
-    })
+  const handleToggleCommentStatus = async (thread, commentId) => {
+    if (thread.backend === 'supabase') {
+      const target = thread.comments.find((c) => c.id === commentId)
+      const nextHidden = !target?.isClosed
+      await setCommentHidden(commentId, nextHidden)
+    } else {
+      const jcomments = safeParseComments(localStorage.getItem(thread.key))
+      const next = jcomments.map((comment) => {
+        if (comment.id !== commentId) return comment
+        return { ...comment, isClosed: !comment.isClosed }
+      })
 
-    localStorage.setItem(threadKey, JSON.stringify(next))
-    refreshCommentThreads()
+      localStorage.setItem(thread.key, JSON.stringify(next))
+    }
+
+    await refreshCommentThreads()
     setMessage('Comment status updated successfully.')
   }
 
-  const handleClearAllComments = () => {
-    commentThreads.forEach((thread) => localStorage.removeItem(thread.key))
-    refreshCommentThreads()
+  const handleClearAllComments = async () => {
+    if (supabase) {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      if (session) await deleteAllComments()
+    }
+    for (let index = 0; index < localStorage.length; index += 1) {
+      const key = localStorage.key(index)
+      if (key?.startsWith(COMMENTS_PREFIX)) localStorage.removeItem(key)
+    }
+    await refreshCommentThreads()
     setMessage('All comments cleared successfully.')
   }
 
@@ -223,7 +283,10 @@ export default function AdminSettingsPage() {
           </button>
         </div>
         {commentThreads.length === 0 ? (
-          <p className="comments-empty">No comments found in storage.</p>
+          <p className="comments-empty">
+            No comments found.
+            {supabase ? ' Sign in with Supabase on the login page to moderate comments stored in the database.' : null}
+          </p>
         ) : (
           <div className="admin-comments-list">
             {commentThreads.map((thread) => (
@@ -233,7 +296,7 @@ export default function AdminSettingsPage() {
                   <span>{thread.commentsCount} comments | {thread.repliesCount} replies</span>
                 </header>
                 <div className="admin-thread-actions">
-                  <button type="button" className="btn-danger" onClick={() => handleDeleteThread(thread.key)}>
+          <button type="button" className="btn-danger" onClick={() => handleDeleteThread(thread)}>
                     Delete Thread
                   </button>
                 </div>
@@ -247,14 +310,14 @@ export default function AdminSettingsPage() {
                       <button
                         type="button"
                         className="btn-secondary"
-                        onClick={() => handleToggleCommentStatus(thread.key, comment.id)}
+                        onClick={() => handleToggleCommentStatus(thread, comment.id)}
                       >
                         {comment.isClosed ? 'Open Comment' : 'Close Comment'}
                       </button>
                       <button
                         type="button"
                         className="btn-danger"
-                        onClick={() => handleDeleteSingleComment(thread.key, comment.id)}
+                        onClick={() => handleDeleteSingleComment(thread, comment.id)}
                       >
                         Delete Comment
                       </button>

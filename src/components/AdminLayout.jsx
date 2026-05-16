@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { ADMIN_AUTH_KEY } from '../admin/storage'
+import { supabase } from '../lib/supabaseClient'
 
 const ADMIN_MENU = [
   { to: '/admin/overview', label: 'Overview' },
@@ -12,6 +13,7 @@ const ADMIN_MENU = [
   { to: '/admin/profile', label: 'Admin Profile' },
   { to: '/admin/settings', label: 'Admin Settings' },
   { to: '/admin/form-inbox', label: 'Form Inbox' },
+  { to: '/admin/newsletter', label: 'Newsletter' },
 ]
 
 export default function AdminLayout() {
@@ -20,7 +22,8 @@ export default function AdminLayout() {
 
   const closeSidebar = () => setSidebarOpen(false)
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    if (supabase) await supabase.auth.signOut()
     localStorage.removeItem(ADMIN_AUTH_KEY)
     navigate('/admin/login', { replace: true })
   }

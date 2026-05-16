@@ -71,6 +71,63 @@ export function loadCategories() {
   }
 }
 
+/** Normalize admin post list (scheduled → published when due). Exported for Supabase sync. */
+export function normalizeStoredPosts(parsed) {
+  if (!Array.isArray(parsed)) return []
+
+  let hasChange = false
+  const now = Date.now()
+  const nextPosts = parsed.map((post) => {
+    const normalizedStatus = post.status || 'published'
+    const normalized = {
+      ...post,
+      status: normalizedStatus,
+    }
+
+    if (!post.status) {
+      hasChange = true
+    }
+
+    if (normalizedStatus === 'scheduled') {
+      const scheduledMs = Date.parse(post.scheduledFor || '')
+      if (Number.isFinite(scheduledMs) && scheduledMs <= now) {
+        const publishedDate = new Date(scheduledMs)
+        normalized.status = 'published'
+        normalized.scheduledFor = null
+        normalized.publishedAt = publishedDate.toISOString()
+        normalized.date = publishedDate.toLocaleDateString('en-US', {
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+        })
+        hasChange = true
+      }
+    }
+
+    return normalized
+  })
+
+  if (hasChange) {
+    localStorage.setItem(POST_STORAGE_KEY, JSON.stringify(nextPosts))
+  }
+
+  return nextPosts
+}
+
+function scheduleCmsConfigPush() {
+  if (typeof window === 'undefined') return
+  import('../lib/cmsSync.js')
+    .then((m) => m.schedulePushCmsConfig())
+    .catch(() => {})
+}
+
+function scheduleCmsPostsPush() {
+  if (typeof window === 'undefined') return
+  import('../lib/cmsSync.js')
+    .then((m) => m.schedulePushCmsPosts())
+    .catch(() => {})
+}
+
 function notifyAdminStorage() {
   if (typeof window === 'undefined') return
   window.dispatchEvent(new CustomEvent('worldnews-admin-storage'))
@@ -79,6 +136,7 @@ function notifyAdminStorage() {
 export function saveCategories(nextCategories) {
   localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(nextCategories))
   notifyAdminStorage()
+  scheduleCmsConfigPush()
 }
 
 export function loadPosts() {
@@ -86,45 +144,7 @@ export function loadPosts() {
     const saved = localStorage.getItem(POST_STORAGE_KEY)
     if (!saved) return []
     const parsed = JSON.parse(saved)
-    if (!Array.isArray(parsed)) return []
-
-    let hasChange = false
-    const now = Date.now()
-    const nextPosts = parsed.map((post) => {
-      const normalizedStatus = post.status || 'published'
-      const normalized = {
-        ...post,
-        status: normalizedStatus,
-      }
-
-      if (!post.status) {
-        hasChange = true
-      }
-
-      if (normalizedStatus === 'scheduled') {
-        const scheduledMs = Date.parse(post.scheduledFor || '')
-        if (Number.isFinite(scheduledMs) && scheduledMs <= now) {
-          const publishedDate = new Date(scheduledMs)
-          normalized.status = 'published'
-          normalized.scheduledFor = null
-          normalized.publishedAt = publishedDate.toISOString()
-          normalized.date = publishedDate.toLocaleDateString('en-US', {
-            month: 'long',
-            day: 'numeric',
-            year: 'numeric',
-          })
-          hasChange = true
-        }
-      }
-
-      return normalized
-    })
-
-    if (hasChange) {
-      localStorage.setItem(POST_STORAGE_KEY, JSON.stringify(nextPosts))
-    }
-
-    return nextPosts
+    return normalizeStoredPosts(parsed)
   } catch {
     return []
   }
@@ -132,6 +152,8 @@ export function loadPosts() {
 
 export function savePosts(nextPosts) {
   localStorage.setItem(POST_STORAGE_KEY, JSON.stringify(nextPosts))
+  notifyAdminStorage()
+  scheduleCmsPostsPush()
 }
 
 export function loadSettings() {
@@ -148,6 +170,7 @@ export function loadSettings() {
 export function saveSettings(nextSettings) {
   localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(nextSettings))
   notifyAdminStorage()
+  scheduleCmsConfigPush()
 }
 
 export function loadProfile() {
@@ -163,4 +186,6 @@ export function loadProfile() {
 
 export function saveProfile(nextProfile) {
   localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(nextProfile))
+  notifyAdminStorage()
+  scheduleCmsConfigPush()
 }

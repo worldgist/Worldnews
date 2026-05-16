@@ -1,19 +1,25 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { getById, mostRead } from '../data/feed'
+import { getPublicArticleById } from '../data/publicFeed'
+import { mostRead } from '../data/feed'
+import { useFeedSync } from '../hooks/useFeedSync'
 
 /**
  * Homepage-style “Popular posts” band (uses global `mostRead` + article data).
  */
-export default function PopularPostsBand({ limit = 5 }) {
-  const stories = useMemo(
-    () =>
-      mostRead
-        .map((item) => getById(item.id))
-        .filter(Boolean)
-        .slice(0, limit),
-    [limit]
-  )
+export default function PopularPostsBand({ limit = 5, articles: articleList }) {
+  const feedSync = useFeedSync()
+  const stories = useMemo(() => {
+    const fromMostRead = mostRead
+      .map((item) => getPublicArticleById(item.id, articleList))
+      .filter(Boolean)
+    if (fromMostRead.length >= limit) return fromMostRead.slice(0, limit)
+
+    const pool = Array.isArray(articleList) && articleList.length > 0 ? articleList : []
+    if (pool.length > 0) return pool.slice(0, limit)
+
+    return fromMostRead
+  }, [limit, feedSync, articleList])
 
   if (stories.length === 0) return null
 

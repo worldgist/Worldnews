@@ -59,7 +59,7 @@ export default function AdvertisePage() {
     })
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     setTouched(true)
     if (!isValid) {
@@ -77,18 +77,16 @@ export default function AdvertisePage() {
       goals: goals.trim(),
       to: commercial,
     }
-    logPublicFormSubmission('advertise', payload)
-    window.setTimeout(() => {
-      setStatus('success')
-      setOrg('')
-      setName('')
-      setEmail('')
-      setMarket('')
-      setBudget('unsure')
-      setFormats(new Set(['display']))
-      setGoals('')
-      setTouched(false)
-    }, 500)
+    await logPublicFormSubmission('advertise', payload)
+    setStatus('success')
+    setOrg('')
+    setName('')
+    setEmail('')
+    setMarket('')
+    setBudget('unsure')
+    setFormats(new Set(['display']))
+    setGoals('')
+    setTouched(false)
   }
 
   return (
@@ -116,8 +114,8 @@ export default function AdvertisePage() {
             Request media kit &amp; availability
           </h2>
           <p className="page-prose-intro">
-            Share a short brief and we will follow up with placement options, creative specs, and lead times. This demo stores
-            submissions in your browser only — wire the form to your CRM or email service when you go live.
+            Share a short brief and we will follow up with placement options, creative specs, and lead times. Submissions are
+            stored in Supabase when configured, with a browser fallback if the database is unavailable.
           </p>
 
           <ul className="page-bullet-columns" role="list">

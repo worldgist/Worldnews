@@ -59,7 +59,7 @@ export default function SubmitNewsPage() {
     })
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     setTouched(true)
     if (!isValid) {
@@ -80,21 +80,19 @@ export default function SubmitNewsPage() {
       anonymous: anon,
       to: tips,
     }
-    logPublicFormSubmission('submit-news', payload)
-    window.setTimeout(() => {
-      setStatus('success')
-      setHeadline('')
-      setSummary('')
-      setUrgency('routine')
-      setLocation('')
-      setWhen('')
-      setName('')
-      setEmail('')
-      setPhone('')
-      setMaterials(new Set(['links']))
-      setAnon(false)
-      setTouched(false)
-    }, 450)
+    await logPublicFormSubmission('submit-news', payload)
+    setStatus('success')
+    setHeadline('')
+    setSummary('')
+    setUrgency('routine')
+    setLocation('')
+    setWhen('')
+    setName('')
+    setEmail('')
+    setPhone('')
+    setMaterials(new Set(['links']))
+    setAnon(false)
+    setTouched(false)
   }
 
   return (

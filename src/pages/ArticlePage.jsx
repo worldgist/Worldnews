@@ -1,9 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import DOMPurify from 'dompurify'
 import NewsCard from '../components/NewsCard'
 import AsidePostList from '../components/AsidePostList'
-import { getById, getLatest, mostRead, articles } from '../data/feed'
+import { mostRead } from '../data/feed'
+import { getPublicArticleById, getAllArticles, getPublicLatest } from '../data/publicFeed'
 import { loadSettings } from '../admin/storage'
+import { supabase } from '../lib/supabaseClient'
+import { fetchCommentsForArticle, insertTopLevelComment, insertReply } from '../lib/articleCommentsSupabase'
+import { usePublicFeed } from '../hooks/usePublicFeed'
 
 const NEWS_ARTICLE_JSONLD_ID = 'news-article-jsonld'
 
@@ -37,7 +42,15 @@ function loadComments(articleId) {
 
 export default function ArticlePage() {
   const { id } = useParams()
-  const article = getById(id)
+  const { articles: allArticles } = usePublicFeed()
+  const article = useMemo(() => getPublicArticleById(id, allArticles), [id, allArticles])
+  const storyHtmlSafe = useMemo(() => {
+    const raw = article?.htmlContent
+    if (!raw) return null
+    return DOMPurify.sanitize(raw, {
+      USE_PROFILES: { html: true },
+    })
+  }, [article?.htmlContent])
   const [comments, setComments] = useState([])
   const [commentName, setCommentName] = useState('')
   const [commentText, setCommentText] = useState('')
@@ -107,10 +120,23 @@ export default function ArticlePage() {
 
   useEffect(() => {
     if (!id) return
-    setComments(loadComments(id))
+    let cancelled = false
     setReplyOpenFor(null)
     setReplyName('')
     setReplyText('')
+    ;(async () => {
+      if (supabase) {
+        const remote = await fetchCommentsForArticle(id)
+        if (!cancelled && remote !== null) {
+          setComments(remote)
+          return
+        }
+      }
+      if (!cancelled) setComments(loadComments(id))
+    })()
+    return () => {
+      cancelled = true
+    }
   }, [id])
 
   useEffect(() => {
@@ -123,19 +149,25 @@ export default function ArticlePage() {
   const repliesEnabled = commentSettings.repliesEnabled !== false
   const maxCommentLength = Math.min(2000, Math.max(80, Number(commentSettings.commentMaxLength) || 500))
 
-  const persistComments = (nextComments) => {
-    setComments(nextComments)
-    if (!id) return
-    localStorage.setItem(commentsStorageKey(id), JSON.stringify(nextComments))
-  }
-
-  const handleAddComment = (e) => {
+  const handleAddComment = async (e) => {
     e.preventDefault()
     if (!commentsEnabled) return
     if (!commentName.trim() || !commentText.trim()) return
     if (commentText.trim().length > maxCommentLength) {
       alert(`Comment cannot exceed ${maxCommentLength} characters.`)
       return
+    }
+
+    if (supabase) {
+      const { ok, error } = await insertTopLevelComment(id, commentName.trim(), commentText.trim())
+      if (ok) {
+        const next = await fetchCommentsForArticle(id)
+        if (next) setComments(next)
+        setCommentName('')
+        setCommentText('')
+        return
+      }
+      if (error) console.warn(error)
     }
 
     const nextComments = [
@@ -148,19 +180,32 @@ export default function ArticlePage() {
       },
       ...comments,
     ]
-
-    persistComments(nextComments)
+    setComments(nextComments)
+    if (id) localStorage.setItem(commentsStorageKey(id), JSON.stringify(nextComments))
     setCommentName('')
     setCommentText('')
   }
 
-  const handleAddReply = (e, commentId) => {
+  const handleAddReply = async (e, commentId) => {
     e.preventDefault()
     if (!repliesEnabled) return
     if (!replyName.trim() || !replyText.trim()) return
     if (replyText.trim().length > maxCommentLength) {
       alert(`Reply cannot exceed ${maxCommentLength} characters.`)
       return
+    }
+
+    if (supabase) {
+      const { ok, error } = await insertReply(id, commentId, replyName.trim(), replyText.trim())
+      if (ok) {
+        const next = await fetchCommentsForArticle(id)
+        if (next) setComments(next)
+        setReplyOpenFor(null)
+        setReplyName('')
+        setReplyText('')
+        return
+      }
+      if (error) console.warn(error)
     }
 
     const nextComments = comments.map((comment) => {
@@ -178,8 +223,8 @@ export default function ArticlePage() {
         ],
       }
     })
-
-    persistComments(nextComments)
+    setComments(nextComments)
+    if (id) localStorage.setItem(commentsStorageKey(id), JSON.stringify(nextComments))
     setReplyOpenFor(null)
     setReplyName('')
     setReplyText('')
@@ -254,24 +299,24 @@ export default function ArticlePage() {
   }
 
   // Related: same category, different id, max 3
-  const related = articles
+  const related = allArticles
     .filter((a) => a.category === article.category && a.id !== article.id)
     .slice(0, 3)
 
-  const sameCategoryPosts = articles.filter(
+  const sameCategoryPosts = allArticles.filter(
     (a) => a.category === article.category && a.id !== article.id
   )
 
   const recentPosts = takeUniqueArticleRows(
-    [sameCategoryPosts, articles.filter((a) => a.id !== article.id)],
+    [sameCategoryPosts, allArticles.filter((a) => a.id !== article.id)],
     article.id,
     5
   )
 
-  const latestFromCategory = getLatest(24).filter(
+  const latestFromCategory = getPublicLatest(24).filter(
     (a) => a.category === article.category && a.id !== article.id
   )
-  const latestFromFeed = getLatest(24).filter((a) => a.id !== article.id)
+  const latestFromFeed = getPublicLatest(24).filter((a) => a.id !== article.id)
   const latestPosts = takeUniqueArticleRows(
     [latestFromCategory, latestFromFeed],
     article.id,
@@ -279,11 +324,11 @@ export default function ArticlePage() {
   )
 
   const popularFromCategory = mostRead
-    .map((item) => getById(item.id))
+    .map((item) => getPublicArticleById(item.id))
     .filter(Boolean)
     .filter((a) => a.category === article.category && a.id !== article.id)
   const popularFromFeed = mostRead
-    .map((item) => getById(item.id))
+    .map((item) => getPublicArticleById(item.id))
     .filter(Boolean)
     .filter((a) => a.id !== article.id)
   const popularPosts = takeUniqueArticleRows(
@@ -324,11 +369,18 @@ export default function ArticlePage() {
 
         <section className="story-full" aria-label="Full story content">
           <h2>Full Story</h2>
-          {storyParagraphs.map((paragraph, idx) =>
-            paragraph.startsWith('"') || paragraph.startsWith('\u201c') ? (
-              <blockquote key={idx}>{paragraph}</blockquote>
-            ) : (
-              <p key={idx}>{paragraph}</p>
+          {storyHtmlSafe ? (
+            <div
+              className="story-body-html"
+              dangerouslySetInnerHTML={{ __html: storyHtmlSafe }}
+            />
+          ) : (
+            storyParagraphs.map((paragraph, idx) =>
+              paragraph.startsWith('"') || paragraph.startsWith('\u201c') ? (
+                <blockquote key={idx}>{paragraph}</blockquote>
+              ) : (
+                <p key={idx}>{paragraph}</p>
+              ),
             )
           )}
         </section>

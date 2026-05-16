@@ -1,7 +1,7 @@
 ﻿import { useEffect } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { Analytics } from '@vercel/analytics/react'
-import { getById } from './data/feed'
+import { getPublicArticleById } from './data/publicFeed'
 import SiteHeader from './components/SiteHeader'
 import SiteFooter from './components/SiteFooter'
 import HomePage from './pages/HomePage'
@@ -31,6 +31,9 @@ import AdminSocialMediaPage from './pages/admin/AdminSocialMediaPage'
 import AdminProfilePage from './pages/admin/AdminProfilePage'
 import AdminSettingsPage from './pages/admin/AdminSettingsPage'
 import AdminFormInboxPage from './pages/admin/AdminFormInboxPage'
+import AdminNewsletterPage from './pages/admin/AdminNewsletterPage'
+import { supabase } from './lib/supabaseClient'
+import { pullCmsSnapshot, CMS_SYNC_EVENT } from './lib/cmsSync'
 import './App.css'
 
 const ADMIN_AUTH_KEY = 'worldnews-admin-auth'
@@ -95,6 +98,24 @@ export default function App() {
   }, [location.pathname, location.search])
 
   useEffect(() => {
+    if (!supabase) return undefined
+    void pullCmsSnapshot()
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) localStorage.setItem(ADMIN_AUTH_KEY, 'true')
+    })
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        localStorage.setItem(ADMIN_AUTH_KEY, 'true')
+        void pullCmsSnapshot()
+      }
+      if (event === 'SIGNED_OUT') localStorage.removeItem(ADMIN_AUTH_KEY)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
+
+  useEffect(() => {
     const applySeo = () => {
       try {
         const saved = localStorage.getItem(SETTINGS_STORAGE_KEY)
@@ -153,7 +174,7 @@ export default function App() {
             : `Search latest stories and topics on ${siteName}.`
         } else if (location.pathname.startsWith('/article/')) {
           const articleId = location.pathname.split('/article/')[1]
-          const article = getById(articleId)
+          const article = getPublicArticleById(articleId)
 
           if (article) {
             pageTitle = `${article.title} - ${siteName}`
@@ -190,7 +211,13 @@ export default function App() {
 
     applySeo()
     window.addEventListener('storage', applySeo)
-    return () => window.removeEventListener('storage', applySeo)
+    window.addEventListener('worldnews-admin-storage', applySeo)
+    window.addEventListener(CMS_SYNC_EVENT, applySeo)
+    return () => {
+      window.removeEventListener('storage', applySeo)
+      window.removeEventListener('worldnews-admin-storage', applySeo)
+      window.removeEventListener(CMS_SYNC_EVENT, applySeo)
+    }
   }, [location.pathname, location.search])
 
   return (
@@ -238,6 +265,7 @@ export default function App() {
           <Route path="profile" element={<AdminProfilePage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
           <Route path="form-inbox" element={<AdminFormInboxPage />} />
+          <Route path="newsletter" element={<AdminNewsletterPage />} />
         </Route>
         <Route path="/admin/dashboard" element={<Navigate to="/admin/overview" replace />} />
       </Routes>
