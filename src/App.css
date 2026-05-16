@@ -714,10 +714,65 @@ h3 {
   transition: border-color 160ms ease, color 160ms ease, transform 160ms ease;
 }
 
+.footer-social-row .social-facebook {
+  color: #1877f2;
+}
+
+.footer-social-row .social-x {
+  color: #f5f7fa;
+}
+
+.footer-social-row .social-instagram {
+  color: #f58529;
+}
+
+.footer-social-row .social-whatsapp {
+  color: #25d366;
+}
+
+.footer-social-row .social-youtube {
+  color: #ff0033;
+}
+
+.footer-social-row .social-tiktok {
+  color: #00f2ea;
+}
+
 .footer-social-row a:hover {
-  color: #7bc0ff;
-  border-color: #7bc0ff;
+  color: #ffffff;
+  border-color: currentColor;
   transform: translateY(-1px);
+}
+
+.footer-social-row a img {
+  width: 1.08rem;
+  height: 1.08rem;
+  object-fit: contain;
+  display: block;
+}
+
+.footer-social-row .social-facebook:hover {
+  background: #1877f2;
+}
+
+.footer-social-row .social-x:hover {
+  background: #000000;
+}
+
+.footer-social-row .social-instagram:hover {
+  background: radial-gradient(circle at 30% 115%, #fdf497 0%, #fdf497 8%, #fd5949 45%, #d6249f 60%, #285aeb 90%);
+}
+
+.footer-social-row .social-whatsapp:hover {
+  background: #25d366;
+}
+
+.footer-social-row .social-youtube:hover {
+  background: #ff0033;
+}
+
+.footer-social-row .social-tiktok:hover {
+  background: linear-gradient(135deg, #00f2ea 0%, #00f2ea 45%, #ff0050 55%, #ff0050 100%);
 }
 
 .footer-social-row svg {
