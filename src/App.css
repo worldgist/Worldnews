@@ -2327,9 +2327,21 @@ blockquote {
   }
 
   .top-strip,
-  .ticker,
   .brand-text {
     display: none;
+  }
+
+  .ticker {
+    display: block;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .ticker-track {
+    gap: 1.2rem;
+    padding: 0.42rem 0.75rem;
+    font-size: 0.78rem;
+    animation-duration: 20s;
   }
 
   .menu-toggle,
