@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import DOMPurify from 'dompurify'
 import NewsCard from '../components/NewsCard'
+import ArticleImage from '../components/ArticleImage'
+import { resolveArticleImage } from '../lib/articleImage'
 import AsidePostList from '../components/AsidePostList'
 import { mostRead } from '../data/feed'
 import { getPublicArticleById, getAllArticles, getPublicLatest } from '../data/publicFeed'
@@ -84,7 +86,7 @@ export default function ArticlePage() {
       '@type': 'NewsArticle',
       headline: article.title,
       description: article.summary,
-      image: [article.image],
+      image: [resolveArticleImage(article, 1200)],
       author: {
         '@type': 'Person',
         name: article.author,
@@ -361,11 +363,7 @@ export default function ArticlePage() {
           <span>{article.readTime} read</span>
         </div>
 
-        <img
-          className="story-hero"
-          src={article.image}
-          alt={article.title}
-        />
+        <ArticleImage article={article} className="story-hero" width={1200} loading="eager" />
 
         <section className="story-full" aria-label="Full story content">
           <h2>Full Story</h2>

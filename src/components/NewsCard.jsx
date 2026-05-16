@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import ArticleImage from './ArticleImage'
 
 export default function NewsCard({ article, size = 'normal' }) {
   return (
@@ -10,7 +11,7 @@ export default function NewsCard({ article, size = 'normal' }) {
         target="_blank"
         rel="noopener noreferrer"
       >
-        <img src={article.image} alt={article.title} loading="lazy" />
+        <ArticleImage article={article} />
         <div className="card-body">
           <p className="kicker">{article.category}</p>
           <h3>{article.title}</h3>

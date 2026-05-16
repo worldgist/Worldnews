@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import ArticleImage from './ArticleImage'
 
 export default function AsidePostList({ posts, emptyMessage, showRank = false }) {
   if (!posts?.length) {
@@ -23,12 +24,7 @@ export default function AsidePostList({ posts, emptyMessage, showRank = false })
                 {index + 1}
               </span>
             ) : null}
-            <img
-              className="aside-post-teaser__thumb"
-              src={post.image}
-              alt=""
-              loading="lazy"
-            />
+            <ArticleImage article={post} className="aside-post-teaser__thumb" alt="" />
             <div className="aside-post-teaser__body">
               <span className="aside-post-teaser__title">{post.title}</span>
               <span className="aside-post-teaser__meta">

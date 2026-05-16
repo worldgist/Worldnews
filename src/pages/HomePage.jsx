@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import NewsCard from '../components/NewsCard'
+import ArticleImage from '../components/ArticleImage'
 import PopularPostsBand from '../components/PopularPostsBand'
 import PostPagination, { STORIES_PER_PAGE } from '../components/PostPagination'
 import { getCategoryPath } from '../admin/storage'
@@ -153,7 +154,7 @@ export default function HomePage() {
         <section className="hero" aria-label="Featured story">
           <article className="hero-main">
             <Link to={`/article/${featured.id}`}>
-              <img src={featured.image} alt={featured.title} loading="eager" />
+              <ArticleImage article={featured} loading="eager" width={1400} />
             </Link>
             <div className="hero-content">
               <p className="kicker">

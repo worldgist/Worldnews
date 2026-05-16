@@ -1,0 +1,526 @@
+/**
+ * May 16, 2026 — daily world news feed (static fallback + CMS seed source).
+ */
+
+import { resolveArticleImage } from '../lib/articleImage.js'
+
+const TODAY = 'May 16, 2026'
+const PUBLISHED_AT = '2026-05-16T14:00:00.000Z'
+
+function story({
+  id,
+  category,
+  title,
+  summary,
+  body,
+  image,
+  author = 'World Gist News',
+  featured = false,
+  readTime = '7 min',
+}) {
+  const draft = { id, category, title, summary, body, author, featured, image }
+  return {
+    id,
+    category,
+    title,
+    summary,
+    body,
+    author,
+    date: TODAY,
+    readTime,
+    image: resolveArticleImage(draft),
+    featured,
+    status: 'published',
+    publishedAt: PUBLISHED_AT,
+  }
+}
+
+export const todayArticles = [
+  story({
+    id: 'g7-climate-finance-deal',
+    category: 'World',
+    title: 'G7 Leaders Agree $100 Billion Climate Finance Framework on Summit’s Final Day',
+    summary:
+      'Host nation negotiators announced a compromise package tying adaptation grants to verifiable emissions reporting after marathon talks in Geneva.',
+    featured: true,
+    readTime: '9 min',
+    image:
+      'https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?auto=format&fit=crop&w=1400&q=80',
+    body: [
+      'Leaders from the Group of Seven closed their three-day summit in Geneva with a framework that channels roughly $100 billion in climate finance toward adaptation, grid modernization, and disaster resilience in vulnerable regions. The deal emerged after negotiators bridged a late dispute over whether contributions would be loans, grants, or hybrid instruments.',
+      'Under the agreement, wealthier members committed to publish annual disbursement dashboards with project-level geotags and independent audit summaries. Recipient governments must submit transparent emissions inventories and progress reports on nationally determined contributions before unlocking the next tranche of funds.',
+      'Climate advocates welcomed the transparency mechanisms but said the headline figure still falls short of what developing nations requested at prior UN talks. Several Pacific island delegations pressed successfully for a dedicated rapid-response window for sea-level-rise emergencies.',
+      'Energy markets reacted calmly; analysts said the pact’s enforcement hinges on parliamentary approvals in multiple capitals this summer. Industrial groups lobbied for carve-outs on transitional fuels, winning language that allows phased compliance for hard-to-abate sectors under strict review.',
+      'The communiqué also references maritime security and food corridors, linking climate finance to grain storage and cold-chain upgrades in import-dependent states. Follow-up ministerials are scheduled for September to align the framework with multilateral development bank lending rules.',
+      'Summit hosts said the package sends a signal ahead of broader UN climate conferences that major economies can still coordinate despite trade tensions elsewhere. Critics cautioned that implementation—not communiqué language—will determine whether communities see faster protection from extreme weather.',
+    ],
+  }),
+  story({
+    id: 'ukraine-truce-extension-talks',
+    category: 'World',
+    title: 'Ukraine and Mediators Discuss 72-Hour Truce Extension Along Eastern Front',
+    summary:
+      'Diplomats report progress on humanitarian corridors as both sides trade proposals for monitored pauses in heavy artillery exchanges.',
+    image:
+      'https://images.unsplash.com/photo-1580137189272-c9379f8864fd?auto=format&fit=crop&w=900&q=80',
+    author: 'Lena Schreiber',
+    body: [
+      'Mediators from two neutral states presented a draft to extend a fragile 72-hour truce along selected sectors of the eastern front, according to officials briefed on closed sessions in Istanbul. The proposal would widen humanitarian corridors for medical evacuations and allow repair crews to reach damaged power substations.',
+      'Military liaisons mapped tentative exclusion zones where heavy artillery would pause under third-party verification. Monitors would use drone overflight and ground sensors to document violations within hours rather than days, addressing a key failure mode of earlier pauses.',
+      'Civilian groups near the contact line reported quieter nights since the initial truce began, though sporadic small-arms fire continued in contested suburbs. Aid trucks queued at checkpoints said clearance times improved modestly but remained unpredictable.',
+      'Negotiations stalled briefly over prisoner-exchange sequencing and demining schedules around agricultural fields ahead of planting season. Diplomats said a parallel track on grain export insurance could unlock even if broader political questions remain unresolved.',
+      'NATO and EU officials publicly backed humanitarian extensions while stressing that long-term security guarantees remain separate from short truces. Markets in neighboring countries showed slight relief in freight insurance quotes for Black Sea routes.',
+      'A plenary review is expected Sunday night; failure would revert to prior ceasefire terms without automatic renewal. Residents along the line said they are preparing for either outcome—stocking essentials while hoping repair teams can restore water pumps in time for summer heat.',
+    ],
+  }),
+  story({
+    id: 'red-sea-shipping-security',
+    category: 'World',
+    title: 'Red Sea Shipping Coalition Expands Naval Escorts After Tanker Incident',
+    summary:
+      'Major carriers resumed partial sailings as a multinational task force announced wider convoy coverage through the Bab el-Mandeb strait.',
+    image:
+      'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?auto=format&fit=crop&w=900&q=80',
+    author: 'Nora Feldman',
+    body: [
+      'A multinational naval coalition expanded escorted convoys through the Red Sea after a product tanker reported a proximity explosion that caused minor hull damage but no casualties. Insurers immediately repriced war-risk premiums for vessels without military accompaniment.',
+      'Three of the world’s largest container lines said they would resume limited sailings under escort schedules published every 48 hours. Smaller operators warned that backlog at alternate routes around Africa still strains schedules and fuel budgets.',
+      'Port authorities in Djibouti and Jeddah coordinated tighter inspection windows to reduce idle anchorage time for escorted groups. Fishing communities raised concerns about restricted lanes interfering with seasonal migrations of coastal fleets.',
+      'Energy analysts said refined product flows stabilized modestly, though LNG rerouting continued at elevated costs. European buyers monitored diesel inventories ahead of summer driving demand.',
+      'Diplomats at the UN Security Council exchanged draft language on protecting civilian shipping while avoiding escalation on land. Shipping insurers called for a public incident database to speed claims adjudication.',
+      'Industry groups estimate normal throughput could take weeks to restore even if attacks decline, given crew fatigue rules and maintenance backlogs on diverted vessels.',
+    ],
+  }),
+  story({
+    id: 'who-pandemic-fund-launch',
+    category: 'World',
+    title: 'WHO Launches Global Pandemic Preparedness Fund With 40 Founding Donors',
+    summary:
+      'The fund targets surveillance labs, vaccine surge manufacturing, and cross-border data sharing for emerging pathogens.',
+    image:
+      'https://images.unsplash.com/photo-1584036561561-dadc2c4479a0?auto=format&fit=crop&w=900&q=80',
+    author: 'Amina K. Bello',
+    body: [
+      'The World Health Organization inaugurated a pandemic preparedness fund backed by 40 governments and philanthropic partners, aiming to shorten the gap between outbreak detection and scalable response. Initial pledges focus on genomic surveillance networks and regional vaccine fill-finish capacity.',
+      'Officials said grants will prioritize low-income regions where laboratory backlogs delayed prior responses. A governance board mixing health ministries and independent scientists will approve disbursements on 72-hour emergency tracks when trigger criteria are met.',
+      'Pharmaceutical manufacturers signed nonbinding commitments to reserve production slots for platform vaccines adaptable to novel pathogens. Critics asked for stronger transparency on pricing during emergencies.',
+      'Privacy advocates secured language limiting travel-data reuse outside public-health purposes. Several countries reserved the right to opt out of specific data-sharing annexes while still receiving lab equipment grants.',
+      'Economists estimate the fund could reduce GDP losses from future shocks if early detection improves by even days. Opposition lawmakers in multiple capitals questioned ongoing contributions without domestic hospital staffing reforms.',
+      'WHO leaders scheduled a six-month review to publish early metrics on lab activation times and stockpile readiness scores by region.',
+    ],
+  }),
+
+  story({
+    id: 'eu-migration-pact-vote',
+    category: 'Politics',
+    title: 'European Parliament Approves Overhauled Migration Pact in Tight Plenary Vote',
+    summary:
+      'The package sets shared rules for asylum processing, border screening, and solidarity quotas among member states.',
+    image:
+      'https://images.unsplash.com/photo-1520523839897-bd9bafddc0a0?auto=format&fit=crop&w=900&q=80',
+    author: 'Tom Brandsen',
+    body: [
+      'The European Parliament approved a sweeping migration pact by a narrow margin after centrist blocs brokered last-minute amendments on asylum timelines and family reunification rights. The vote ends years of deadlock but triggers immediate implementation fights in national capitals.',
+      'Frontline states secured faster pre-entry screening procedures and EU-funded reception facilities, while northern members accepted revised solidarity mechanisms that can include relocations or financial contributions.',
+      'Human rights groups criticized accelerated border procedures they say risk limiting appeal rights. Parliamentary rapporteurs countered that independent monitoring boards will audit detention conditions quarterly.',
+      'Business federations welcomed harmonized work-permit pathways for sectors facing labor shortages, though unions warned against undercutting wage standards. Tech vendors bid aggressively to supply biometric screening systems under new procurement rules.',
+      'Election-watchers predict the pact will dominate campaigning in upcoming national votes, with populist parties vowing to renegotiate chapters they call federal overreach. Commission officials pledged a public dashboard tracking each state’s compliance milestones.',
+      'Implementation begins in phases over 18 months, starting with shared databases for missing migrant children—a provision advocates called the pact’s most concrete humanitarian win.',
+    ],
+  }),
+  story({
+    id: 'us-congress-budget-vote',
+    category: 'Politics',
+    title: 'U.S. Congress Heads Toward Midnight Vote on Stopgap Spending Package',
+    summary:
+      'Leaders released a short-term bill funding agencies through July while separate talks continue on defense and health lines.',
+    image:
+      'https://images.unsplash.com/photo-1540910419892-4a36d2c3266c?auto=format&fit=crop&w=900&q=80',
+    author: 'Diana Ferreira',
+    body: [
+      'Congressional leaders published a stopgap spending bill expected to reach the House floor tonight, avoiding a partial government shutdown while longer negotiations continue on defense modernization and rural health reimbursements.',
+      'The package maintains most agency budgets at current levels with narrow anomalies for disaster relief accounts and air-traffic control hiring. White House officials signaled support if procedural hurdles in the Senate clear without amendment fights.',
+      'Conservative members demanded side letters on border staffing, while progressives pressed for housing voucher protections. Leadership contained both by isolating contentious policy riders to a parallel bill unlikely to pass before recess.',
+      'Federal workers’ unions urged swift passage, citing anxiety among civil servants after prior shutdown scares. Contractors warned that short extensions complicate multi-year infrastructure bids requiring funding certainty.',
+      'Analysts said markets have priced in passage, but bond traders watch for any last-minute holdouts in the Senate. Agencies prepared contingency furlough notices that will be withdrawn if the vote succeeds.',
+      'If adopted, negotiators get six weeks to finalize full-year appropriations before the next cliff, setting up a heated summer session.',
+    ],
+  }),
+  story({
+    id: 'india-state-election-turnout',
+    category: 'Politics',
+    title: 'Record Turnout Reported as Five Indian States Hold Final Phase of Voting',
+    summary:
+      'Election officials cite youth mobilization and weather cooperation as counting begins for closely watched regional assemblies.',
+    image:
+      'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=900&q=80',
+    author: 'Raj Menon',
+    body: [
+      'Election authorities reported record turnout across five states wrapping up regional assembly polls, with youth voters comprising a larger share than the prior cycle according to early demographic sampling.',
+      'Long lines formed in urban districts where employment and transit issues dominated debates, while rural areas focused on irrigation credits and crop insurance delays. Observers from civil society groups documented generally orderly proceedings with isolated technical glitches in voter-list apps.',
+      'Major parties spun competing narratives before counting begins Sunday, each claiming momentum in swing districts. Fact-checkers flagged synthetic audio clips impersonating candidates, prompting platforms to remove several coordinated networks.',
+      'Security forces maintained heightened presence near sensitive border constituencies. International monitors praised improved transparency kiosks displaying tabulation scans in pilot precincts.',
+      'Markets traded sideways pending results, with investors watching whether incumbents retain power in manufacturing-heavy states. Analysts said coalition math could influence upcoming national policy on trade tariffs.',
+      'Official results are expected in phases over 48 hours, with legal challenges likely in razor-thin races.',
+    ],
+  }),
+  story({
+    id: 'nigeria-governorship-rally',
+    category: 'Politics',
+    title: 'Nigeria’s Governorship Campaigns Peak With Cross-Party Security Pact',
+    summary:
+      'Candidates signed a code of conduct pledging peaceful rallies as observers deploy nationwide ahead of weekend polls.',
+    image:
+      'https://images.unsplash.com/photo-1504384764586-b07e8e7fbb1e?auto=format&fit=crop&w=900&q=80',
+    author: 'Ifeoma Nnaji',
+    body: [
+      'Leading governorship candidates in Nigeria signed a violence-prevention pact brokered by civic coalitions, pledging to condemn incitement and accept certified results in states voting this weekend.',
+      'Police commands reorganized rapid-response units near historical flashpoints, while election officials tested biometric devices for a second time after minor failures in training runs.',
+      'Youth groups organized parallel policy forums focusing on unemployment and grid reliability, demanding post-election accountability dashboards regardless of winners. Business chambers called for uninterrupted port operations during counting.',
+      'Media houses agreed to delay projecting winners until national collation centers verify tallies, a measure intended to dampen street celebrations that have turned volatile in past cycles.',
+      'International partners funded logistics for observers in remote riverine communities previously under-monitored. Religious leaders issued joint appeals for calm, citing economic stakes if investor confidence falters.',
+      'Analysts describe several states as toss-ups where legislative coattails could reshape federal bargaining on security spending next quarter.',
+    ],
+  }),
+
+  story({
+    id: 'aston-villa-liverpool-champions-league',
+    category: 'Sports',
+    title: 'Aston Villa Beat Liverpool 4-2 to Seal Champions League Football',
+    summary:
+      'Ollie Watkins scored twice as Unai Emery’s side leapfrogged Liverpool into the top four on a dramatic Premier League night.',
+    image:
+      'https://images.unsplash.com/photo-1522778119026-d179f1621b9e?auto=format&fit=crop&w=1400&q=80',
+    author: 'Daniel Okpara',
+    featured: false,
+    readTime: '8 min',
+    body: [
+      'Aston Villa secured UEFA Champions League qualification for next season with a 4-2 victory over Liverpool at Villa Park on May 15, Sportstar and BBC Sport reported.',
+      'Ollie Watkins struck twice, with Morgan Rogers and John McGinn adding goals as Unai Emery’s side moved to 62 points in fourth place, leapfrogging Liverpool on 59 with two Premier League rounds remaining.',
+      'Liverpool’s defeat leaves Arne Slot’s team vulnerable to being caught by Bournemouth and Brighton in the race for remaining European places.',
+      'Villa Park erupted as Watkins’ movement stretched a reshuffled Liverpool back line missing key defensive rhythm late in the season.',
+      'The result caps a remarkable season for Villa after heavy summer investment, validating Emery’s European pedigree from his Sevilla and Villarreal triumphs.',
+      'Liverpool must regroup quickly with fixtures still to come while Villa can plan Champions League group-stage logistics for the first time since the old European Cup era narratives resurfaced in Birmingham.',
+    ],
+  }),
+  story({
+    id: 'premier-league-gw37-title-race',
+    category: 'Sports',
+    title: 'Premier League GW37: Title Race Tight as Two Points Separate Top Two',
+    summary:
+      'With two games left, the summit and relegation zone are both separated by two points; VAR panel records three more errors.',
+    image:
+      'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=900&q=80',
+    author: 'Habiba Sule',
+    body: [
+      'Entering Premier League matchweek 37, just two points separate the top two in the title race and the same margin divides survival from relegation at the bottom, The Athletic reported on May 16.',
+      'West Ham remain two points from safety with two fixtures to play, keeping the drop zone alive for multiple clubs on the final Sunday.',
+      'Sunday’s slate includes Manchester United against Nottingham Forest (12:30 BST) and Brentford versus Crystal Palace (15:00 BST), with managers juggling fitness and yellow-card suspensions.',
+      'BBC Sport’s Fantasy Premier League team-news hub listed late fitness tests across the league, affecting draft picks for the penultimate gameweek.',
+      'Separately, the Premier League Key Match Incidents panel confirmed three more VAR errors, bringing the season total to 23. Everton were wrongly denied a penalty against Manchester City, and West Ham were denied two spot-kicks at Brentford.',
+      'Fans and pundits renewed calls for post-season VAR transparency reports as lawmakers debate independent oversight of officiating standards.',
+    ],
+  }),
+  story({
+    id: 'barcelona-la-liga-title-clasico',
+    category: 'Sports',
+    title: 'Barcelona Clinch La Liga With 2-0 El Clásico Win Over Real Madrid',
+    summary:
+      'Hansi Flick’s side secured a 29th league crown at Spotify Camp Nou; Marcus Rashford scored in the title party.',
+    image:
+      'https://images.unsplash.com/photo-1431324155629-3a4dd4fb513b?auto=format&fit=crop&w=900&q=80',
+    author: 'Tunde Adebayo',
+    body: [
+      'FC Barcelona won the 2025-26 La Liga title with a 2-0 victory over Real Madrid in El Clásico at Spotify Camp Nou on May 10–11, Barca Blaugranes and Football España reported.',
+      'The result gave Barcelona their 29th league championship and a second consecutive title under manager Hansi Flick, who agreed a contract extension through 2028 with an optional 2029 year.',
+      'Marcus Rashford scored in the clincher, capping a debut season that also saw first La Liga medals for João Cancelo, Joan Garcia, and Roony Bardghji.',
+      'Real Madrid remain in pursuit of European silverware, but domestically the gap widened despite earlier wins over Espanyol and Real Oviedo in May.',
+      'Midweek football brought a reminder that the race was already decided: Deportivo Alavés stunned the champions 1-0 on May 13, while Sevilla beat Villarreal 3-2 the same night.',
+      'La Liga’s May schedule still matters for European qualification and relegation, with Girona, Real Sociedad, and Valencia fixtures drawing heavy betting interest after the title was sealed.',
+    ],
+  }),
+  story({
+    id: 'arsenal-psg-champions-league-final',
+    category: 'Sports',
+    title: 'Arsenal vs PSG: Champions League Final Set for Budapest on May 30',
+    summary:
+      'Defending champions PSG meet an Arsenal side with nine clean sheets; The Killers will headline the kickoff show.',
+    image:
+      'https://images.unsplash.com/photo-1508098682722-e99c643e7485?auto=format&fit=crop&w=900&q=80',
+    author: 'Daniel Okpara',
+    body: [
+      'Arsenal will face Paris Saint-Germain in the 2026 UEFA Champions League final on Saturday, May 30, at the Puskás Aréna in Budapest, UEFA and BBC Sport confirmed.',
+      'Kickoff is 18:00 CET (17:00 BST), earlier than the traditional 20:00 slot to improve fan logistics. Arsenal reached the showpiece by beating Atlético Madrid 2-1 on aggregate; PSG edged Bayern Munich 6-5 after eliminating Monaco, Chelsea, and Liverpool.',
+      'It is Arsenal’s first Champions League final in 20 years. PSG are defending champions seeking back-to-back European crowns after last season’s triumph.',
+      'Mikel Arteta’s side have conceded only six goals in the competition with nine clean sheets, while Luis Enrique’s PSG boast the tournament’s most prolific attack.',
+      'The Killers will headline the UEFA Champions League Final Kick Off Show presented by Pepsi. Arsenal received roughly 16,824 tickets for traveling fans, priced from €70 to €950.',
+      'Tactical previews focus on whether Arsenal’s structured press can disrupt PSG’s wide rotations, with both squads near full health after semi-final knocks.',
+    ],
+  }),
+  story({
+    id: 'fifa-world-cup-2026-squads',
+    category: 'Sports',
+    title: 'World Cup 2026: England Name 55, Belgium Pick Lukaku, Record $871M Pool',
+    summary:
+      'Squads and discipline rulings shape the runway to the June 11 kickoff across USA, Mexico, and Canada.',
+    image:
+      'https://images.unsplash.com/photo-1522778119026-d179f1621b9e?auto=format&fit=crop&w=900&q=80',
+    author: 'Kevin Ojo',
+    body: [
+      'England manager Thomas Tuchel submitted a provisional 55-man World Cup squad by the May 12 deadline, including Luke Shaw, Danny Welbeck, Alex Scott, and Trent Alexander-Arnold, BBC Sport reported. The final 26-player roster is due May 22.',
+      'Belgium named their 26 on May 15, selecting 33-year-old Romelu Lukaku despite fitness concerns after a hamstring issue at Napoli. Manager Rudi Garcia said Lukaku is “out of shape” but remains “our best striker” with five weeks to recover.',
+      'FIFA announced record team payouts totaling $871 million at the May 4 council meeting in Vancouver—$12.5 million minimum per qualified nation plus increased preparation and qualification fees.',
+      'Discipline headlines continue: FIFA extended Argentina winger Gianluca Prestianni’s ban to cover two World Cup matches if he is selected, following verbal abuse toward Vinícius Júnior in youth competition.',
+      'FIFA also waived one-game bans for Argentina’s Nicolás Otamendi and Ecuador’s Moisés Caicedo so both can play World Cup openers under a broader amnesty on qualifying sanctions.',
+      'The tournament opens June 11 across the United States, Mexico, and Canada, with the first-ever 48-team format and a star-studded halftime show featuring Madonna, Shakira, and BTS at the final in New Jersey.',
+    ],
+  }),
+  story({
+    id: 'fa-cup-final-chelsea-man-city',
+    category: 'Sports',
+    title: 'FA Cup Final Today: Chelsea vs Man City at Wembley in Historic Fourth Straight Run',
+    summary:
+      'The 145th final kicks off 3pm BST on BBC One as City chase an eighth FA Cup and Chelsea a ninth.',
+    image:
+      'https://images.unsplash.com/photo-1459865264680-62d3bacbf163?auto=format&fit=crop&w=900&q=80',
+    author: 'Habiba Sule',
+    body: [
+      'Chelsea and Manchester City meet in the 2026 Emirates FA Cup Final at Wembley on Saturday, May 16, with kickoff at 3pm BST live on BBC One, TNT Sports, and BBC iPlayer, The FA and BBC Sport confirmed.',
+      'It is the 145th FA Cup final. Chelsea seek a ninth trophy in their 17th final; Manchester City play in their fourth consecutive FA Cup final—the first club to reach four in a row—targeting an eighth crown.',
+      'The sides have never met in an FA Cup final, though Chelsea beat City 1-0 in the 2021 UEFA Champions League final.',
+      'Pre-match ceremonies include the Band of the Household Cavalry performing “Abide With Me” and the national anthem, with the Mitre Ultimax Pro match ball and a Golden Ball Award after full time.',
+      'Pep Guardiola and Enzo Maresca must balance weary squads still involved in European qualification races, making rotation and set-piece preparation pivotal on the wide Wembley pitch.',
+      'The winner books a Community Shield date and late-season bragging rights in English football’s oldest knockout competition, with fans filling Olympic Way hours before gates open.',
+    ],
+  }),
+
+  story({
+    id: 'npr-learning-recession-scorecard',
+    category: 'School',
+    title: 'NPR: U.S. Math and Reading Slides Began Years Before COVID, New Scorecard Shows',
+    summary:
+      'A May Education Scorecard finds a decade-long “learning recession” from 2013, while many states now post math gains and Detroit emerges as a bright spot.',
+    image:
+      'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=900&q=80',
+    author: 'Khadija Omar',
+    body: [
+      'NPR reported in May on a newly released Education Scorecard showing that declines in U.S. student math and reading performance began years before the COVID-19 pandemic, describing a decade-long “learning recession” tracing back to around 2013.',
+      'Researchers said the data challenges narratives that blame pandemic disruptions alone for national score gaps. The scorecard still finds encouraging signals: most states are making gains in math, and federal relief dollars helped many low-income districts stage comebacks.',
+      'Detroit public schools were highlighted as a bright spot, improving reading and math faster than similar districts. Chalkbeat reported the district leaned on reading interventionists, stronger attendance campaigns, and clearer ownership of literacy goals at the school level.',
+      'Analysts cautioned that recovery is uneven—suburban and rural gaps persist, and older adolescents who missed foundational skills need targeted tutoring, not only grade-level instruction.',
+      'Policymakers debating 2026–27 budgets are using the scorecard to argue for sustained Title I funding rather than cliff cuts as emergency dollars expire.',
+      'Parents groups called for transparent school-level reporting so communities can compare progress without waiting for biennial national releases.',
+    ],
+  }),
+  story({
+    id: 'california-newsom-school-budget',
+    category: 'School',
+    title: 'Newsom’s May Budget Revision Could Send $5.6 Billion More to California Schools',
+    summary:
+      'EdSource reports withheld education funds may be released as the state eyes a potential $10 billion surplus tied partly to AI-sector revenue.',
+    image:
+      'https://images.unsplash.com/photo-1588072432836-e10032774350?auto=format&fit=crop&w=900&q=80',
+    author: 'Mina Al-Karim',
+    body: [
+      'Governor Gavin Newsom’s May 2026 budget revision is expected to release an additional $5.6 billion to California K–12 schools and community colleges that had been withheld pending revenue confirmations, according to EdSource.',
+      'State finance officials also project a potential $10 billion education surplus driven in part by stronger-than-expected tax receipts linked to AI and technology investment activity in California.',
+      'District leaders said the funds could stabilize teacher hiring, expand transitional kindergarten slots, and address facility backlogs in fast-growing counties. Union negotiators hope the revision eases tense contract talks in several large districts.',
+      'Charter and traditional school advocates both lobbied for clear allocation formulas to avoid last-minute shifts that complicate local budgeting in June.',
+      'Critics warned that surplus projections can evaporate if capital-gains revenue softens, urging districts to avoid long-term commitments on one-time dollars.',
+      'Legislative hearings on the revision are scheduled before the constitutional budget deadline, with school boards preparing scenario plans for either full release or partial clawbacks.',
+    ],
+  }),
+  story({
+    id: 'utah-student-beliefs-coursework-law',
+    category: 'School',
+    title: 'Utah Law Lets College Students Opt Out of Assignments That Conflict With Beliefs',
+    summary:
+      'The Hechinger Report says professors must offer alternatives, with guardrails so students cannot skip required math or core competencies.',
+    image:
+      'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=900&q=80',
+    author: 'Carlos Reyes',
+    body: [
+      'Utah enacted a law allowing college students to opt out of coursework or readings they say conflict with religious or personal beliefs, requiring faculty to provide alternative assignments of comparable rigor, the Hechinger Report reported in May.',
+      'Supporters argued the measure protects conscience rights in pluralistic classrooms. Faculty associations countered that open-ended opt-outs could chill discussion of history, literature, science, and health topics.',
+      'Lawmakers included guardrails: students cannot refuse entire required math sequences or accredited professional competencies solely on belief grounds. Professors document accommodations to prevent repeated bad-faith requests.',
+      'Legal scholars predict court tests over academic freedom versus state mandates, especially in public university systems.',
+      'Students at private religious colleges said the law largely codifies practices already in handbooks, while secular campuses face new training on compliance timelines.',
+      'Accreditation reviewers will monitor whether alternates meet learning outcomes, a process administrators say adds paperwork but may reduce litigation risk.',
+    ],
+  }),
+  story({
+    id: 'nyc-new-schools-bronx-queens',
+    category: 'School',
+    title: 'Five New NYC Public Schools Opening This Fall in the Bronx and Queens',
+    summary:
+      'Chalkbeat reports new campuses for arts and for students with significant disabilities, aimed at easing overcrowding.',
+    image:
+      'https://images.unsplash.com/photo-1497633763263-9827a4e1a2a0?auto=format&fit=crop&w=900&q=80',
+    author: 'Isabelle Nguyen',
+    body: [
+      'New York City will open five new public schools in fall 2026 across the Bronx and Queens, Chalkbeat reported, including programs focused on the arts and two campuses designed exclusively for students with significant disabilities.',
+      'City planners said the openings target pockets of chronic overcrowding where families have lobbied for years. Seat projections will be published zone by zone before summer registration windows.',
+      'Advocates for special education welcomed dedicated buildings with sensory-friendly spaces and tailored staffing ratios, while insisting transportation routes must be finalized early to avoid midyear chaos.',
+      'Arts-focused schools will partner with local museums and performance venues for internships; critics asked how admissions will balance talent screens with open-access mandates.',
+      'United Federation of Teachers leaders demanded clarity on hiring lines and facility safety certificates before principals are appointed.',
+      'Community education councils in the Bronx—home to World Gist News’ listed address—are scheduling forums for parents to meet design teams and review bell schedules.',
+    ],
+  }),
+
+  story({
+    id: 'meta-ai-incognito-chat',
+    category: 'Technology',
+    title: 'Zuckerberg Unveils Meta “Incognito” AI Chats With No Server Logs',
+    summary:
+      'The Verge reports end-to-end encrypted Meta AI conversations rolling out on WhatsApp and the Meta AI app over coming months.',
+    image:
+      'https://images.unsplash.com/photo-1611162616305-c69b3c7fbf53?auto=format&fit=crop&w=900&q=80',
+    author: 'Raj Menon',
+    body: [
+      'Meta CEO Mark Zuckerberg announced “Incognito Chat” for Meta AI, which the company describes as a major product where no log of conversations is stored on servers, The Verge reported in May.',
+      'Meta said the feature uses end-to-end encryption so neither Meta nor third parties can read messages, differentiating it from rivals: Google’s Gemini temporary chats can retain data up to 72 hours, while ChatGPT may retain chats for up to 30 days under default settings.',
+      'Rollout will happen over coming months inside WhatsApp and the standalone Meta AI app. Privacy advocates welcomed stronger defaults but asked for independent audits of metadata collection and abuse reporting paths.',
+      'Regulators in Europe and the U.S. are likely to scrutinize how encrypted AI chats interact with child-safety and lawful-access frameworks.',
+      'Competitors face pressure to match marketing claims with technical reviews; security researchers requested public threat models before wide deployment.',
+      'Investors viewed the announcement as part of Meta’s strategy to rebuild trust after years of data-use controversies, though monetization paths for incognito modes remain unclear.',
+    ],
+  }),
+  story({
+    id: 'google-android-17-gemini',
+    category: 'Technology',
+    title: 'Google Puts Gemini at the Center of Android 17 Ahead of Apple’s Siri Revamp',
+    summary:
+      'Bloomberg and CNBC report app automations, redesigned emoji, and a “Pause Point” tool to limit doomscrolling.',
+    image:
+      'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=900&q=80',
+    author: 'Rina Patel',
+    body: [
+      'Google unveiled Android 17 with Gemini Intelligence deeply integrated, positioning the release ahead of Apple’s expected Siri overhaul, Bloomberg and CNBC reported in mid-May.',
+      'Demonstrations showed Gemini understanding on-screen context to complete multi-step tasks—such as assembling shopping carts or starting restaurant bookings—while keeping humans in the loop to approve transactions.',
+      'The update includes more than 4,000 redesigned emoji, improved cross-platform file sharing between Android and iOS devices, and a “Pause Point” feature meant to interrupt habitual doomscrolling with gentle breakpoints.',
+      'OEM partners confirmed flagship timelines for over-the-air waves beginning late summer, with enterprise controls for regulated industries.',
+      'Privacy groups asked whether screen-context AI retains snapshots and how long embeddings persist on device versus cloud fallbacks.',
+      'Wall Street analysts said the release strengthens Google’s mobile moat but raises antitrust questions about default assistant bundling in markets already probing app store rules.',
+    ],
+  }),
+  story({
+    id: 'google-ai-zero-day-stopped',
+    category: 'Technology',
+    title: 'Google Says It Stopped an AI-Assisted Zero-Day Targeting 2FA Systems',
+    summary:
+      'The Verge reports the exploit could have bypassed two-factor authentication on a web-based admin tool—a first-of-its-kind AI-linked case.',
+    image:
+      'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=900&q=80',
+    author: 'Isabelle Nguyen',
+    body: [
+      'Google disclosed that its threat intelligence teams stopped a zero-day exploit developed with AI assistance, which The Verge reported would have bypassed two-factor authentication on a web-based system administration product.',
+      'Researchers described the incident as among the first public cases linking generative-AI tooling to operational exploit development, not just phishing lures.',
+      'Google withheld some vendor details but said patches shipped through coordinated disclosure before widespread abuse.',
+      'Cybersecurity leaders warned that lower barriers to exploit crafting could compress patch timelines for smaller SaaS vendors without dedicated red teams.',
+      'Nation-state and criminal groups are presumed to be experimenting with similar workflows; CISA urged federal contractors to adopt software bills of materials and rapid isolation playbooks.',
+      'Ethicists called for industry norms on publishing AI-generated proof-of-concept code that could be repurposed offensively.',
+    ],
+  }),
+  story({
+    id: 'openai-mac-update-deadline',
+    category: 'Technology',
+    title: 'OpenAI Urges Mac Users to Update After Supply-Chain Attack on npm Ecosystem',
+    summary:
+      'AppleInsider reports a June 12 deadline before macOS security protections block older ChatGPT builds tied to exposed signing certificates.',
+    image:
+      'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=900&q=80',
+    author: 'Mina Al-Karim',
+    body: [
+      'OpenAI told Mac users to update ChatGPT and related desktop apps after a supply-chain attack affected the TanStack npm ecosystem, exposing code-signing certificates, AppleInsider reported in May.',
+      'Apple’s upcoming security rules could block older app versions after June 12 if they rely on compromised signing material, effectively forcing upgrades.',
+      'IT departments rushed to push managed updates across creative and engineering fleets that widely adopted ChatGPT desktop clients.',
+      'OpenAI said it rotated certificates and found no evidence customer conversation content was accessed via this incident, though investigations continue.',
+      'Developers across the JavaScript ecosystem audited dependencies for similar typosquatting and maintainer-compromise patterns.',
+      'The episode renewed calls for reproducible builds and hardware security keys for npm publisher accounts.',
+    ],
+  }),
+
+  story({
+    id: 'fifa-halftime-madonna-shakira-bts',
+    category: 'Entertainment',
+    title: 'Madonna, Shakira, and BTS to Headline First FIFA World Cup Halftime Show',
+    summary:
+      'Variety reports the July 19 MetLife Stadium set, teased by Chris Martin and Elmo, will fund Global Citizen education programs.',
+    image:
+      'https://images.unsplash.com/photo-1506157786151-b8493531f3ca?auto=format&fit=crop&w=900&q=80',
+    author: 'Lara Mensah',
+    body: [
+      'Madonna, Shakira, and BTS will co-headline the first-ever FIFA World Cup halftime show on July 19, 2026, at MetLife Stadium in East Rutherford, New Jersey, Variety reported in May.',
+      'Coldplay’s Chris Martin and Sesame Street’s Elmo appeared in a teaser trailer announcing the lineup, a pairing FIFA marketed toward families worldwide.',
+      'Proceeds will support the FIFA Global Citizen Education Fund, which backs schooling and football access for children in underserved communities.',
+      'Ticketing partners warned that demand for hospitality packages already exceeds supply for the final weekend, with tourism boards in the New York metro area preparing crowd-flow plans.',
+      'Broadcasters secured multi-language simulcast rights; latency and commentary rights remain contentious in some Latin American markets.',
+      'Music critics debated how three megastacts will split a compressed halftime window, but agreed the format signals FIFA’s push for U.S.-style spectacle on football’s biggest stage.',
+    ],
+  }),
+  story({
+    id: 'conan-obrien-oscars-2027-host',
+    category: 'Entertainment',
+    title: 'Conan O’Brien Will Host the 2027 Oscars for a Third Straight Year',
+    summary:
+      'Deadline confirms the 99th Academy Awards on March 14, 2027, with returning producers Raj Kapoor and Katy Mullan.',
+    image:
+      'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=900&q=80',
+    author: 'Kevin Ojo',
+    body: [
+      'Conan O’Brien will return as host of the 99th Academy Awards on March 14, 2027, for his third consecutive year, Deadline reported in May.',
+      'Producers Raj Kapoor and Katy Mullan also return for a fourth straight Oscars producing cycle, signaling stability after years of rotating hosts and formats.',
+      'Academy leaders credited O’Brien’s 2026 broadcast with improved young-adult viewership on streaming clips, though linear TV ratings remain below pre-pandemic peaks.',
+      'Studios are already mapping 2026 fall festival strategies to position best-picture contenders for a March showdown.',
+      'Labor representatives want guarantees on AI usage in writing and acting categories before campaign season intensifies.',
+      'Fashion and luxury sponsors booked early carpet slots, betting on O’Brien’s mix of irreverence and industry-insider credibility.',
+    ],
+  }),
+  story({
+    id: 'will-smith-supermax-amazon',
+    category: 'Entertainment',
+    title: 'Will Smith Returns in “Supermax” After Amazon MGM Pays $70 Million',
+    summary:
+      'Variety reports David Gordon Green will direct the action thriller for Prime Video—Smith’s first major original since the 2022 Oscars incident.',
+    image:
+      'https://images.unsplash.com/photo-1440404653325-ab127d49abc1?auto=format&fit=crop&w=900&q=80',
+    author: 'Lara Mensah',
+    body: [
+      'Will Smith will star in “Supermax,” an action thriller directed by David Gordon Green, after Amazon MGM acquired worldwide rights in a $70 million deal reported by Variety in May.',
+      'The film will stream exclusively on Prime Video on a date yet to be announced, marking Smith’s return to a high-profile original feature following the 2022 Academy Awards incident and subsequent career reset.',
+      'Green, known for dramatic and genre-blending work, is expected to ground the prison-break premise in character-driven set pieces rather than pure spectacle.',
+      'Amazon executives bet the package will drive subscriber acquisitions in international markets where Smith remains a top-quartile draw.',
+      'Guild sources said insurers attached stricter conduct clauses but did not block financing.',
+      'Analysts will watch whether theatrical windows are skipped entirely or whether Amazon tests a limited big-screen play in key cities.',
+    ],
+  }),
+  story({
+    id: 'bridgerton-season-5-2027',
+    category: 'Entertainment',
+    title: 'Netflix Sets “Bridgerton” Season 5 for 2027 With Francesca Love Story',
+    summary:
+      'Deadline reports production began in March after Season 4’s February debut—the first back-to-back yearly cycle for the hit romance.',
+    image:
+      'https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&w=900&q=80',
+    author: 'Tunde Adebayo',
+    body: [
+      'Netflix announced that Bridgerton Season 5 will premiere in 2027, focusing on Francesca Bridgerton in what producers describe as a central female love story, Deadline reported in May.',
+      'The schedule marks the first time two consecutive Bridgerton seasons will land in back-to-back calendar years after Season 4 debuted in February 2026 and production on Season 5 began in March.',
+      'Showrunner Shonda Rhimes’ Shondaland continues to anchor Netflix’s period-drama strategy against rising competition from historical romance on other streamers.',
+      'Fans dissected casting calls for Francesca’s romantic lead, with book readers debating how closely the adaptation will follow Julia Quinn’s source material.',
+      'Costume and music supervisors promised another modern soundtrack overlay on Regency settings, a formula that drove TikTok virality for prior seasons.',
+      'Netflix investors view the franchise as a reliable Q1 anchor, though ballooning production costs may pressure profit margins without ancillary touring or merchandising expansions.',
+    ],
+  }),
+]
+
+export const todayTickerItems = todayArticles.slice(0, 8).map((a) => a.title)
+
+export const todayMostRead = [
+  { id: 'g7-climate-finance-deal', title: todayArticles[0].title, category: 'World' },
+  { id: 'arsenal-psg-champions-league-final', title: todayArticles[15].title, category: 'Sports' },
+  { id: 'meta-ai-incognito-chat', title: todayArticles[16].title, category: 'Technology' },
+  { id: 'eu-migration-pact-vote', title: todayArticles[4].title, category: 'Politics' },
+  { id: 'fifa-halftime-madonna-shakira-bts', title: todayArticles[20].title, category: 'Entertainment' },
+  { id: 'npr-learning-recession-scorecard', title: todayArticles[8].title, category: 'School' },
+]

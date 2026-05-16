@@ -4,6 +4,7 @@
  */
 import { articles, categories as feedCategories, mostRead } from './feed'
 import { loadCategories, loadPosts } from '../admin/storage'
+import { resolveArticleImage } from '../lib/articleImage'
 
 /** In-memory feed set after a direct Supabase fetch (landing page). */
 let livePublicArticles = null
@@ -59,11 +60,18 @@ export function mergePublicArticleLists(cmsFromDb = []) {
   return [...articles]
 }
 
+function withResolvedImages(list) {
+  return list.map((article) => ({
+    ...article,
+    image: resolveArticleImage(article),
+  }))
+}
+
 function resolveArticles(override) {
-  if (Array.isArray(override) && override.length > 0) return override
-  if (livePublicArticles?.length) return livePublicArticles
+  if (Array.isArray(override) && override.length > 0) return withResolvedImages(override)
+  if (livePublicArticles?.length) return withResolvedImages(livePublicArticles)
   const merged = mergePublicArticleLists(getVisibleCmsArticles())
-  return merged.length > 0 ? merged : [...articles]
+  return withResolvedImages(merged.length > 0 ? merged : [...articles])
 }
 
 /** Categories for navigation and /category/:slug (includes admin-added categories). */

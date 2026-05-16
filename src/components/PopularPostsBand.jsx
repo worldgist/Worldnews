@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { getPublicArticleById } from '../data/publicFeed'
+import ArticleImage from './ArticleImage'
 import { mostRead } from '../data/feed'
 import { useFeedSync } from '../hooks/useFeedSync'
 
@@ -51,7 +52,7 @@ export default function PopularPostsBand({ limit = 5, articles: articleList }) {
                 {index + 1}
               </span>
               <div className="popular-card__media">
-                <img src={story.image} alt="" loading="lazy" />
+                <ArticleImage article={story} alt="" />
               </div>
               <div className="popular-card__body">
                 <span className="popular-card__category">{story.category}</span>
