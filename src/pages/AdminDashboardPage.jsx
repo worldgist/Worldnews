@@ -11,6 +11,7 @@ const PROFILE_STORAGE_KEY = 'worldnews-admin-profile'
 const DEFAULT_SETTINGS = {
   siteName: 'World Gist News',
   siteTagline: 'Trusted updates across world, politics, sports, school, and technology.',
+  siteAddress: '2654 SE 62nd Ave, Bronx, NY 10458, United States',
   contactEmail: 'newsroom@worldgistnews.com',
   copyrightText: '(c) 2026 World Gist News.',
 }

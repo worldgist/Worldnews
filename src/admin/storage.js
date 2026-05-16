@@ -9,7 +9,10 @@ export const PROFILE_STORAGE_KEY = 'worldnews-admin-profile'
 export const DEFAULT_SETTINGS = {
   siteName: 'World Gist News',
   siteTagline: 'Trusted updates across world, politics, sports, school, and technology.',
+  siteAddress: '2654 SE 62nd Ave, Bronx, NY 10458, United States',
   contactEmail: 'newsroom@worldgistnews.com',
+  commercialEmail: 'ads@worldgistnews.com',
+  tipsEmail: 'tips@worldgistnews.com',
   copyrightText: '(c) 2026 World Gist News.',
   socialFacebook: 'https://facebook.com/worldgistnews',
   socialX: 'https://x.com/worldgistnews',
@@ -25,7 +28,7 @@ export const DEFAULT_SETTINGS = {
   contactUsContent:
     'For editorial tips, partnership requests, corrections, or general inquiries, please use the form below.\n\nOur team reviews every message and replies as soon as possible during working hours.',
   termsContent:
-    'By using World Gist News, you agree to these terms. If you do not agree, please discontinue use of this website.\n\nAll content is provided for information purposes only. Republishing, copying, or redistribution of materials without permission is prohibited unless otherwise stated.\n\nYou agree not to misuse this site, disrupt services, or post harmful or unlawful content through forms or interactive features.\n\nOur pages may include links to external websites. We are not responsible for the content or policies of third-party services.\n\nWe may revise these terms periodically. Continued use of the site after updates means you accept the revised version.',
+    'By using World Gist News, you agree to these terms. If you do not agree, please discontinue use of this website.\n\nAll content is provided for information purposes only. Nothing on the site constitutes legal, financial, medical, or professional advice for your specific situation.\n\nRepublishing, copying, or redistribution of materials without permission is prohibited unless otherwise stated or clearly allowed by law.\n\nYou agree not to misuse this site, disrupt services, scrape content in a way that degrades performance, or post harmful or unlawful content through forms or interactive features.\n\nComment and community features, when enabled, are moderated at the publisher’s discretion. We may remove content that violates guidelines or applicable law.\n\nOur pages may include links to external websites. We are not responsible for the content, availability, or policies of third-party services.\n\nAdvertising and sponsored placements are labeled when required. Placement does not imply editorial endorsement unless explicitly stated.\n\nWe may revise these terms periodically. Continued use of the site after updates means you accept the revised version. For questions, use the contact details published on the site.',
 }
 
 export const DEFAULT_PROFILE = {
@@ -68,8 +71,14 @@ export function loadCategories() {
   }
 }
 
+function notifyAdminStorage() {
+  if (typeof window === 'undefined') return
+  window.dispatchEvent(new CustomEvent('worldnews-admin-storage'))
+}
+
 export function saveCategories(nextCategories) {
   localStorage.setItem(CATEGORY_STORAGE_KEY, JSON.stringify(nextCategories))
+  notifyAdminStorage()
 }
 
 export function loadPosts() {
@@ -138,6 +147,7 @@ export function loadSettings() {
 
 export function saveSettings(nextSettings) {
   localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(nextSettings))
+  notifyAdminStorage()
 }
 
 export function loadProfile() {

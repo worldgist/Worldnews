@@ -18,6 +18,7 @@ import SportsNewsPage from './pages/SportsNewsPage'
 import SchoolNewsPage from './pages/SchoolNewsPage'
 import TechnologyNewsPage from './pages/TechnologyNewsPage'
 import EntertainmentNewsPage from './pages/EntertainmentNewsPage'
+import TrendingPage from './pages/TrendingPage'
 import SearchResultsPage from './pages/SearchResultsPage'
 import AdminLoginPage from './pages/AdminLoginPage'
 import AdminLayout from './components/AdminLayout'
@@ -29,6 +30,7 @@ import AdminScheduledPostsPage from './pages/admin/AdminScheduledPostsPage'
 import AdminSocialMediaPage from './pages/admin/AdminSocialMediaPage'
 import AdminProfilePage from './pages/admin/AdminProfilePage'
 import AdminSettingsPage from './pages/admin/AdminSettingsPage'
+import AdminFormInboxPage from './pages/admin/AdminFormInboxPage'
 import './App.css'
 
 const ADMIN_AUTH_KEY = 'worldnews-admin-auth'
@@ -102,6 +104,9 @@ export default function App() {
           pageTitle = `${siteName} - Breaking News, Politics, Sports, Technology & Entertainment`
           description =
             'Read latest headlines and in-depth updates on world news, politics, sports, school, technology, and entertainment.'
+        } else if (location.pathname === '/trending') {
+          pageTitle = `Trending - ${siteName}`
+          description = 'See the stories readers are engaging with most across every news section.'
         } else if (location.pathname === '/world-news') {
           pageTitle = `World News - ${siteName}`
           description = 'Breaking world updates, diplomacy, economy, and global affairs coverage.'
@@ -197,6 +202,7 @@ export default function App() {
         <Route path="/school-news" element={<SchoolNewsPage />} />
         <Route path="/technology-news" element={<TechnologyNewsPage />} />
         <Route path="/entertainment-news" element={<EntertainmentNewsPage />} />
+        <Route path="/trending" element={<TrendingPage />} />
         <Route path="/search" element={<SearchResultsPage />} />
         <Route path="/about-us" element={<AboutPage />} />
         <Route path="/contact-us" element={<ContactPage />} />
@@ -226,6 +232,7 @@ export default function App() {
           <Route path="social-media" element={<AdminSocialMediaPage />} />
           <Route path="profile" element={<AdminProfilePage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
+          <Route path="form-inbox" element={<AdminFormInboxPage />} />
         </Route>
         <Route path="/admin/dashboard" element={<Navigate to="/admin/overview" replace />} />
       </Routes>

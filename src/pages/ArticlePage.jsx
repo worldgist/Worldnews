@@ -1,10 +1,26 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import NewsCard from '../components/NewsCard'
+import AsidePostList from '../components/AsidePostList'
 import { getById, getLatest, mostRead, articles } from '../data/feed'
 import { loadSettings } from '../admin/storage'
 
 const NEWS_ARTICLE_JSONLD_ID = 'news-article-jsonld'
+
+/** Prefer earlier lists; de-dupe by id; stop at limit (excluding current story). */
+function takeUniqueArticleRows(lists, excludeId, limit) {
+  const seen = new Set()
+  const out = []
+  for (const list of lists) {
+    for (const a of list) {
+      if (!a || a.id === excludeId || seen.has(a.id)) continue
+      seen.add(a.id)
+      out.push(a)
+      if (out.length >= limit) return out
+    }
+  }
+  return out
+}
 
 function commentsStorageKey(articleId) {
   return `worldnews-comments-${articleId}`
@@ -29,6 +45,7 @@ export default function ArticlePage() {
   const [replyName, setReplyName] = useState('')
   const [replyText, setReplyText] = useState('')
   const [subscribeEmail, setSubscribeEmail] = useState('')
+  const [copyLinkLabel, setCopyLinkLabel] = useState('Copy link')
   const [commentSettings, setCommentSettings] = useState(loadSettings())
 
   const articleUrl = useMemo(() => {
@@ -83,6 +100,10 @@ export default function ArticlePage() {
       if (current) current.remove()
     }
   }, [article, articleUrl])
+
+  useEffect(() => {
+    setCopyLinkLabel('Copy link')
+  }, [id])
 
   useEffect(() => {
     if (!id) return
@@ -164,8 +185,52 @@ export default function ArticlePage() {
     setReplyText('')
   }
 
-  const openInstallPrompt = () => {
-    alert('To install this app: open your browser menu and choose "Install app".')
+  const copyArticleLink = async () => {
+    try {
+      await navigator.clipboard.writeText(articleUrl)
+      setCopyLinkLabel('Copied!')
+      setTimeout(() => setCopyLinkLabel('Copy link'), 2200)
+      return true
+    } catch {
+      try {
+        const ta = document.createElement('textarea')
+        ta.value = articleUrl
+        ta.setAttribute('readonly', '')
+        ta.style.position = 'fixed'
+        ta.style.left = '-9999px'
+        document.body.appendChild(ta)
+        ta.select()
+        const ok = document.execCommand('copy')
+        document.body.removeChild(ta)
+        if (ok) {
+          setCopyLinkLabel('Copied!')
+          setTimeout(() => setCopyLinkLabel('Copy link'), 2200)
+          return true
+        }
+      } catch {
+        /* fall through */
+      }
+    }
+    window.prompt('Copy this article link:', articleUrl)
+    return false
+  }
+
+  const shareArticle = async () => {
+    const payload = {
+      title: article.title,
+      text: article.summary,
+      url: articleUrl,
+    }
+    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+      try {
+        await navigator.share(payload)
+      } catch (err) {
+        if (err && err.name === 'AbortError') return
+        await copyArticleLink()
+      }
+    } else {
+      await copyArticleLink()
+    }
   }
 
   const handleArticleSubscribe = (e) => {
@@ -197,19 +262,35 @@ export default function ArticlePage() {
     (a) => a.category === article.category && a.id !== article.id
   )
 
-  const recentPosts = sameCategoryPosts.slice(0, 5)
+  const recentPosts = takeUniqueArticleRows(
+    [sameCategoryPosts, articles.filter((a) => a.id !== article.id)],
+    article.id,
+    5
+  )
 
-  const latestPosts = getLatest(8)
-    .filter((a) => a.category === article.category)
-    .filter((a) => a.id !== article.id)
-    .slice(0, 5)
+  const latestFromCategory = getLatest(24).filter(
+    (a) => a.category === article.category && a.id !== article.id
+  )
+  const latestFromFeed = getLatest(24).filter((a) => a.id !== article.id)
+  const latestPosts = takeUniqueArticleRows(
+    [latestFromCategory, latestFromFeed],
+    article.id,
+    5
+  )
 
-  const popularPosts = mostRead
+  const popularFromCategory = mostRead
     .map((item) => getById(item.id))
     .filter(Boolean)
-    .filter((a) => a.category === article.category)
+    .filter((a) => a.category === article.category && a.id !== article.id)
+  const popularFromFeed = mostRead
+    .map((item) => getById(item.id))
+    .filter(Boolean)
     .filter((a) => a.id !== article.id)
-    .slice(0, 5)
+  const popularPosts = takeUniqueArticleRows(
+    [popularFromCategory, popularFromFeed],
+    article.id,
+    5
+  )
 
   const encodedUrl = encodeURIComponent(articleUrl)
   const encodedTitle = encodeURIComponent(article.title)
@@ -265,8 +346,15 @@ export default function ArticlePage() {
         <section className="story-tools" aria-label="Share this article">
           <h3>Share this story</h3>
           <div className="share-row">
-            <button type="button" className="share-btn install" onClick={openInstallPrompt}>
-              Install
+            <button
+              type="button"
+              className="share-btn copy-link"
+              onClick={() => copyArticleLink()}
+            >
+              {copyLinkLabel}
+            </button>
+            <button type="button" className="share-btn share-native" onClick={shareArticle}>
+              Share
             </button>
             <a
               className="share-btn facebook"
@@ -426,41 +514,27 @@ export default function ArticlePage() {
       <aside className="story-aside">
         <div className="aside-card">
           <h3>Recent Posts</h3>
-          <ul className="post-links-list">
-            {recentPosts.map((post) => (
-              <li key={post.id}>
-                <Link to={`/article/${post.id}`} target="_blank" rel="noopener noreferrer">
-                  {post.title}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <AsidePostList
+            posts={recentPosts}
+            emptyMessage="No related stories to show yet."
+          />
         </div>
 
         <div className="aside-card">
           <h3>Popular Posts</h3>
-          <ul className="post-links-list">
-            {popularPosts.map((post) => (
-              <li key={post.id}>
-                <Link to={`/article/${post.id}`} target="_blank" rel="noopener noreferrer">
-                  {post.title}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <AsidePostList
+            posts={popularPosts}
+            showRank
+            emptyMessage="No trending stories to show yet."
+          />
         </div>
 
         <div className="aside-card">
           <h3>Latest Posts</h3>
-          <ul className="post-links-list">
-            {latestPosts.map((post) => (
-              <li key={post.id}>
-                <Link to={`/article/${post.id}`} target="_blank" rel="noopener noreferrer">
-                  {post.title}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <AsidePostList
+            posts={latestPosts}
+            emptyMessage="No latest stories to show yet."
+          />
         </div>
 
         {related.length > 0 && (

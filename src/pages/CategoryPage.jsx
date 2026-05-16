@@ -1,16 +1,29 @@
+import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import NewsCard from '../components/NewsCard'
+import PostPagination, { STORIES_PER_PAGE } from '../components/PostPagination'
 import { getByCategory, categories } from '../data/feed'
 
 export default function CategoryPage() {
   const { slug } = useParams()
+  const [currentPage, setCurrentPage] = useState(1)
 
-  // Match slug case-insensitively to canonical category names
   const canonicalCategory = categories.find(
     (c) => c.toLowerCase() === slug?.toLowerCase()
   )
 
   const stories = canonicalCategory ? getByCategory(canonicalCategory) : []
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [canonicalCategory])
+
+  const totalPages = Math.max(1, Math.ceil(stories.length / STORIES_PER_PAGE))
+  const start = (currentPage - 1) * STORIES_PER_PAGE
+  const paginatedStories = stories.slice(
+    start,
+    start + STORIES_PER_PAGE
+  )
 
   if (!canonicalCategory) {
     return (
@@ -32,7 +45,6 @@ export default function CategoryPage() {
         <p>{stories.length} stories</p>
       </div>
 
-      {/* Category nav pills */}
       <div className="cat-pills">
         {categories.map((cat) => (
           <Link
@@ -48,11 +60,23 @@ export default function CategoryPage() {
       {stories.length === 0 ? (
         <p className="empty-state">No stories in this section yet.</p>
       ) : (
-        <div className="card-grid card-grid--wide">
-          {stories.map((article) => (
-            <NewsCard key={article.id} article={article} />
-          ))}
-        </div>
+        <>
+          <div
+            className="card-grid card-grid--wide"
+            id="category-stories"
+          >
+            {paginatedStories.map((article) => (
+              <NewsCard key={article.id} article={article} />
+            ))}
+          </div>
+
+          <PostPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            ariaLabel={`${canonicalCategory} stories pagination`}
+          />
+        </>
       )}
     </main>
   )

@@ -1,26 +1,41 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import NewsCard from '../components/NewsCard'
+import PostPagination, { STORIES_PER_PAGE } from '../components/PostPagination'
 import { getByCategory } from '../data/feed'
 
 export default function WorldNewsPage() {
-  const worldStories = getByCategory('World')
+  const [currentPage, setCurrentPage] = useState(1)
+  const stories = getByCategory('World')
+  const totalPages = Math.max(1, Math.ceil(stories.length / STORIES_PER_PAGE))
+  const start = (currentPage - 1) * STORIES_PER_PAGE
+  const paginatedStories = stories.slice(start, start + STORIES_PER_PAGE)
 
   return (
     <main className="container">
       <div className="category-header">
         <p className="kicker">News</p>
         <h1>World News</h1>
-        <p>{worldStories.length} stories</p>
+        <p>{stories.length} stories</p>
       </div>
 
-      {worldStories.length === 0 ? (
+      {stories.length === 0 ? (
         <p className="empty-state">No world news stories available yet.</p>
       ) : (
-        <div className="card-grid card-grid--wide">
-          {worldStories.map((article) => (
-            <NewsCard key={article.id} article={article} />
-          ))}
-        </div>
+        <>
+          <div className="card-grid card-grid--wide">
+            {paginatedStories.map((article) => (
+              <NewsCard key={article.id} article={article} />
+            ))}
+          </div>
+
+          <PostPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            ariaLabel="World news pagination"
+          />
+        </>
       )}
 
       <p style={{ marginTop: '1rem' }}>

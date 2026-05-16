@@ -14,7 +14,7 @@ export default function NewsCard({ article, size = 'normal' }) {
         <div className="card-body">
           <p className="kicker">{article.category}</p>
           <h3>{article.title}</h3>
-          <p>{article.summary}</p>
+          <p className="card-summary">{article.summary}</p>
           {article.author && (
             <span className="card-meta">
               {article.author} &middot; {article.date}

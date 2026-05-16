@@ -126,8 +126,32 @@ export default function AdminSettingsPage() {
         <input id="siteNameInput" type="text" value={settings.siteName} onChange={(e) => handleSettingChange('siteName', e.target.value)} required />
         <label htmlFor="siteTaglineInput">Website Tagline</label>
         <textarea id="siteTaglineInput" rows={2} value={settings.siteTagline} onChange={(e) => handleSettingChange('siteTagline', e.target.value)} />
+        <label htmlFor="siteAddressInput">Mailing address</label>
+        <textarea
+          id="siteAddressInput"
+          rows={2}
+          value={settings.siteAddress || ''}
+          onChange={(e) => handleSettingChange('siteAddress', e.target.value)}
+          placeholder="Street, city, state, ZIP, country"
+        />
         <label htmlFor="contactEmailInput">Contact Email</label>
         <input id="contactEmailInput" type="email" value={settings.contactEmail} onChange={(e) => handleSettingChange('contactEmail', e.target.value)} />
+        <label htmlFor="commercialEmailInput">Advertising / Commercial Email</label>
+        <input
+          id="commercialEmailInput"
+          type="email"
+          value={settings.commercialEmail || ''}
+          onChange={(e) => handleSettingChange('commercialEmail', e.target.value)}
+          placeholder="ads@example.com"
+        />
+        <label htmlFor="tipsEmailInput">News Tips Email</label>
+        <input
+          id="tipsEmailInput"
+          type="email"
+          value={settings.tipsEmail || ''}
+          onChange={(e) => handleSettingChange('tipsEmail', e.target.value)}
+          placeholder="tips@example.com"
+        />
         <label htmlFor="copyrightInput">Footer Copyright Text</label>
         <input id="copyrightInput" type="text" value={settings.copyrightText} onChange={(e) => handleSettingChange('copyrightText', e.target.value)} />
         <div className="admin-settings-subsection">

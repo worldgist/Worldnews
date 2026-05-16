@@ -11,6 +11,7 @@ const ADMIN_MENU = [
   { to: '/admin/social-media', label: 'Social Media Management' },
   { to: '/admin/profile', label: 'Admin Profile' },
   { to: '/admin/settings', label: 'Admin Settings' },
+  { to: '/admin/form-inbox', label: 'Form Inbox' },
 ]
 
 export default function AdminLayout() {

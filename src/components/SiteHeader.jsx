@@ -104,7 +104,7 @@ export default function SiteHeader() {
             aria-label="Close menu"
             onClick={closeMenu}
           >
-            x
+            <span aria-hidden="true">&times;</span>
           </button>
 
           <form className="main-nav-search" onSubmit={submitSearch} role="search" aria-label="Search news">
@@ -112,33 +112,120 @@ export default function SiteHeader() {
               type="search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search news..."
+              placeholder="Search topics, places…"
               aria-label="Search news"
             />
             <button type="submit">Search</button>
           </form>
 
-          <NavLink to="/" end onClick={closeMenu}>
-            Home
-          </NavLink>
-          {categories.map((cat) => (
-            <NavLink
-              key={cat}
-              to={`/category/${cat.toLowerCase()}`}
-              onClick={closeMenu}
+          <div className="main-nav-drawer-head">
+            <p className="main-nav-drawer-title">Sections</p>
+            <p className="main-nav-drawer-sub">News categories &amp; tools</p>
+          </div>
+
+          <div className="main-nav-section main-nav-section--browse">
+            <p className="main-nav-section-label" id="nav-browse-label">
+              Browse
+            </p>
+            <button
+              type="button"
+              className="main-nav-dropdown-trigger"
+              aria-haspopup="true"
+              aria-controls="main-nav-panel-browse"
+              id="nav-browse-trigger"
+              tabIndex={0}
             >
-              {cat}
-            </NavLink>
-          ))}
-          <NavLink to="/about-us" onClick={closeMenu}>
-            About Us
-          </NavLink>
-          <NavLink to="/contact-us" onClick={closeMenu}>
-            Contact Us
-          </NavLink>
-          <NavLink to="/terms-and-conditions" onClick={closeMenu}>
-            Terms and Conditions
-          </NavLink>
+              Browse
+            </button>
+            <div
+              className="main-nav-section-links"
+              id="main-nav-panel-browse"
+              role="group"
+              aria-label="Browse news and categories"
+            >
+              <NavLink
+                to="/"
+                end
+                onClick={closeMenu}
+                className={({ isActive }) =>
+                  `main-nav-link main-nav-link--home${isActive ? ' active' : ''}`
+                }
+              >
+                Home
+              </NavLink>
+              <NavLink
+                to="/trending"
+                onClick={closeMenu}
+                className={({ isActive }) =>
+                  `main-nav-link main-nav-link--trending${isActive ? ' active' : ''}`
+                }
+              >
+                Trending
+              </NavLink>
+              {categories.map((cat) => (
+                <NavLink
+                  key={cat}
+                  to={`/category/${cat.toLowerCase()}`}
+                  onClick={closeMenu}
+                  className={({ isActive }) =>
+                    `main-nav-link${isActive ? ' active' : ''}`
+                  }
+                >
+                  {cat}
+                </NavLink>
+              ))}
+            </div>
+          </div>
+
+          <div className="main-nav-section main-nav-section--site">
+            <p className="main-nav-section-label" id="nav-site-label">
+              Site
+            </p>
+            <button
+              type="button"
+              className="main-nav-dropdown-trigger"
+              aria-haspopup="true"
+              aria-controls="main-nav-panel-site"
+              id="nav-site-trigger"
+              tabIndex={0}
+            >
+              Site
+            </button>
+            <div
+              className="main-nav-section-links"
+              id="main-nav-panel-site"
+              role="group"
+              aria-label="Site information and policies"
+            >
+              <NavLink
+                to="/about-us"
+                onClick={closeMenu}
+                className={({ isActive }) =>
+                  `main-nav-link${isActive ? ' active' : ''}`
+                }
+              >
+                About Us
+              </NavLink>
+              <NavLink
+                to="/contact-us"
+                onClick={closeMenu}
+                className={({ isActive }) =>
+                  `main-nav-link${isActive ? ' active' : ''}`
+                }
+              >
+                Contact Us
+              </NavLink>
+              <NavLink
+                to="/terms-and-conditions"
+                onClick={closeMenu}
+                className={({ isActive }) =>
+                  `main-nav-link${isActive ? ' active' : ''}`
+                }
+              >
+                Terms &amp; Conditions
+              </NavLink>
+            </div>
+          </div>
         </nav>
       </div>
 
