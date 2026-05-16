@@ -33,7 +33,8 @@ import AdminSettingsPage from './pages/admin/AdminSettingsPage'
 import AdminFormInboxPage from './pages/admin/AdminFormInboxPage'
 import AdminNewsletterPage from './pages/admin/AdminNewsletterPage'
 import { supabase } from './lib/supabaseClient'
-import { pullCmsSnapshot, CMS_SYNC_EVENT } from './lib/cmsSync'
+import { PublicFeedProvider } from './context/PublicFeedContext'
+import { pullCmsSnapshot, syncLocalCmsToCloud, CMS_SYNC_EVENT } from './lib/cmsSync'
 import './App.css'
 
 const ADMIN_AUTH_KEY = 'worldnews-admin-auth'
@@ -108,7 +109,7 @@ export default function App() {
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
         localStorage.setItem(ADMIN_AUTH_KEY, 'true')
-        void pullCmsSnapshot()
+        void syncLocalCmsToCloud()
       }
       if (event === 'SIGNED_OUT') localStorage.removeItem(ADMIN_AUTH_KEY)
     })
@@ -221,6 +222,7 @@ export default function App() {
   }, [location.pathname, location.search])
 
   return (
+    <PublicFeedProvider>
     <div className="app-shell">
       <div className="page-bg" />
       {!isAdminRoute && <SiteHeader />}
@@ -272,5 +274,6 @@ export default function App() {
       {!isAdminRoute && <SiteFooter />}
       <Analytics />
     </div>
+    </PublicFeedProvider>
   )
 }

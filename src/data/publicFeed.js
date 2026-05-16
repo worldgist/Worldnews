@@ -79,7 +79,7 @@ export function getAllArticles(articleList) {
 export function getPublicArticleById(id, articleList) {
   if (!id) return null
   const all = resolveArticles(articleList)
-  return all.find((a) => a.id === id) ?? staticArticles.find((a) => a.id === id) ?? null
+  return all.find((a) => a.id === id) ?? articles.find((a) => a.id === id) ?? null
 }
 
 export function getPublicByCategory(category, articleList) {

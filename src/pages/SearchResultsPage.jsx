@@ -1,8 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useMemo } from 'react'
 import NewsCard from '../components/NewsCard'
-import { getAllArticles } from '../data/publicFeed'
-import { useFeedSync } from '../hooks/useFeedSync'
+import { usePublicFeed } from '../hooks/usePublicFeed'
 
 function useSearchQuery() {
   const { search } = useLocation()
@@ -12,9 +11,7 @@ function useSearchQuery() {
 export default function SearchResultsPage() {
   const query = useSearchQuery()
   const loweredQuery = query.toLowerCase()
-  const feedSync = useFeedSync()
-
-  const articles = useMemo(() => getAllArticles(), [feedSync])
+  const { articles } = usePublicFeed()
 
   const results = query
     ? articles.filter((article) => {

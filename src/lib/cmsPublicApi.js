@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient'
+import { CMS_SYNC_EVENT } from './cmsEvents'
 import { categories as feedCategories } from '../data/feed'
 import {
   CATEGORY_STORAGE_KEY,
@@ -14,8 +15,6 @@ import {
   mergePublicArticleLists,
   setLivePublicArticles,
 } from '../data/publicFeed'
-
-const CMS_SYNC_EVENT = 'worldnews-cms-synced'
 
 let fetchInFlight = null
 

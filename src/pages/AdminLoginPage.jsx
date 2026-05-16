@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { syncLocalCmsToCloud } from '../lib/cmsSync'
 import { supabase } from '../lib/supabaseClient'
 
 const ADMIN_USER = 'admin'
@@ -24,6 +25,7 @@ export default function AdminLoginPage() {
       })
       if (!authError) {
         localStorage.setItem(ADMIN_AUTH_KEY, 'true')
+        await syncLocalCmsToCloud()
         const nextPath = location.state?.from?.pathname || '/admin/overview'
         navigate(nextPath, { replace: true })
         return

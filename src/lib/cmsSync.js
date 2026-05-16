@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient'
 import { categories as feedCategories } from '../data/feed'
+import { CMS_SYNC_EVENT } from './cmsEvents'
 import { loadPublicFeedFromDatabase } from './cmsPublicApi'
 import {
   CATEGORY_STORAGE_KEY,
@@ -11,7 +12,7 @@ import {
   normalizeStoredPosts,
 } from '../admin/storage'
 
-export const CMS_SYNC_EVENT = 'worldnews-cms-synced'
+export { CMS_SYNC_EVENT }
 
 let suppressNextRemotePush = false
 let configPushTimer = null
@@ -45,6 +46,19 @@ export async function pullCmsSnapshot() {
   } finally {
     suppressNextRemotePush = false
   }
+}
+
+/** Push localStorage CMS to Supabase, then refresh the public cache. */
+export async function syncLocalCmsToCloud() {
+  if (!supabase) return
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+  if (!session) return
+
+  await pushCmsConfigFromStorage()
+  await pushCmsPostsFromStorage()
+  await pullCmsSnapshot()
 }
 
 export async function pushCmsConfigFromStorage() {

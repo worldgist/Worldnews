@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { DEFAULT_SETTINGS, loadSettings } from '../admin/storage'
+import { CMS_SYNC_EVENT } from '../lib/cmsEvents'
 
 export default function SiteFooter() {
   const [settings, setSettings] = useState(loadSettings())
@@ -13,9 +14,11 @@ export default function SiteFooter() {
     syncSettings()
     window.addEventListener('storage', syncSettings)
     window.addEventListener('worldnews-admin-storage', syncSettings)
+    window.addEventListener(CMS_SYNC_EVENT, syncSettings)
     return () => {
       window.removeEventListener('storage', syncSettings)
       window.removeEventListener('worldnews-admin-storage', syncSettings)
+      window.removeEventListener(CMS_SYNC_EVENT, syncSettings)
     }
   }, [])
 

@@ -1,13 +1,16 @@
 import { createClient } from '@supabase/supabase-js'
+import {
+  isSupabaseConfigured,
+  SUPABASE_ANON_KEY,
+  SUPABASE_PROJECT_URL,
+} from '../config/supabaseProject'
 
-const url = import.meta.env.VITE_SUPABASE_URL
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+export { isSupabaseConfigured }
 
 /**
- * Supabase browser client. Add to `.env`:
- *   VITE_SUPABASE_URL=https://xxxx.supabase.co
- *   VITE_SUPABASE_ANON_KEY=eyJ...
- * Keys are in Project Settings → API in the Supabase dashboard.
+ * Supabase browser client. Override via `.env` / Vercel `VITE_*` vars, or use
+ * defaults in `src/config/supabaseProject.js` (anon key is public; RLS enforces access).
  */
-export const supabase =
-  url && anonKey ? createClient(url, anonKey, { auth: { persistSession: true } }) : null
+export const supabase = isSupabaseConfigured
+  ? createClient(SUPABASE_PROJECT_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true } })
+  : null

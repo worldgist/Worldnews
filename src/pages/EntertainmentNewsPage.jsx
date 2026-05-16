@@ -3,12 +3,12 @@ import { Link } from 'react-router-dom'
 import NewsCard from '../components/NewsCard'
 import PostPagination, { STORIES_PER_PAGE } from '../components/PostPagination'
 import { getPublicByCategory } from '../data/publicFeed'
-import { useFeedSync } from '../hooks/useFeedSync'
+import { usePublicFeed } from '../hooks/usePublicFeed'
 
 export default function EntertainmentNewsPage() {
   const [currentPage, setCurrentPage] = useState(1)
-  const feedSync = useFeedSync()
-  const stories = useMemo(() => getPublicByCategory('Entertainment'), [feedSync])
+  const { articles } = usePublicFeed()
+  const stories = useMemo(() => getPublicByCategory('Entertainment', articles), [articles])
   const totalPages = Math.max(1, Math.ceil(stories.length / STORIES_PER_PAGE))
   const start = (currentPage - 1) * STORIES_PER_PAGE
   const paginatedStories = stories.slice(start, start + STORIES_PER_PAGE)

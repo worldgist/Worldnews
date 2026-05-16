@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { CMS_SYNC_EVENT } from '../lib/cmsSync'
+import { CMS_SYNC_EVENT } from '../lib/cmsEvents'
 
 const ADMIN_STORAGE_EVENT = 'worldnews-admin-storage'
 

@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom'
 import PopularPostsBand from '../components/PopularPostsBand'
+import { usePublicFeed } from '../hooks/usePublicFeed'
 
 export default function TrendingPage() {
+  const { articles } = usePublicFeed()
   return (
     <main className="container">
       <header className="trending-page-head">
@@ -15,7 +17,7 @@ export default function TrendingPage() {
         </Link>
       </header>
 
-      <PopularPostsBand limit={5} />
+      <PopularPostsBand limit={5} articles={articles} />
     </main>
   )
 }

@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { loadCategories, loadSettings } from '../admin/storage'
-import { CMS_SYNC_EVENT } from '../lib/cmsSync'
+import { loadPublicFeedFromDatabase } from '../lib/cmsPublicApi'
+import { CMS_SYNC_EVENT } from '../lib/cmsEvents'
+import { supabase } from '../lib/supabaseClient'
 
 export function useSiteSettings() {
   const [settings, setSettings] = useState(() => loadSettings())
@@ -20,6 +22,17 @@ export function useSiteSettings() {
       window.removeEventListener('storage', sync)
       window.removeEventListener('worldnews-admin-storage', sync)
       window.removeEventListener(CMS_SYNC_EVENT, sync)
+    }
+  }, [sync])
+
+  useEffect(() => {
+    if (!supabase) return undefined
+    let cancelled = false
+    void loadPublicFeedFromDatabase().then(() => {
+      if (!cancelled) sync()
+    })
+    return () => {
+      cancelled = true
     }
   }, [sync])
 
