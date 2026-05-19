@@ -8,7 +8,8 @@
     "build": "npm run sitemap:generate && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "sitemap:generate": "node scripts/generate-sitemap.mjs"
+    "sitemap:generate": "node scripts/generate-sitemap.mjs",
+    "news:import-live": "node scripts/import-thenews-headlines.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.4",
