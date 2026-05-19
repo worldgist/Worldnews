@@ -5,7 +5,7 @@ import { useSiteSettings } from '../hooks/useSiteSettings'
 
 const EFFECTIVE_DATE = 'May 16, 2026'
 const ADSENSE_PUBLISHER_ID = 'ca-pub-7542401782946817'
-const SITE_URL = 'https://worldnews.vercel.app'
+const SITE_URL = 'https://worldgistnews.com'
 
 export default function PrivacyPolicyPage() {
   const { settings } = useSiteSettings()

@@ -44,7 +44,7 @@ const SETTINGS_STORAGE_KEY = 'worldnews-admin-settings'
 const DEFAULT_SITE_NAME = 'World Gist News'
 const DEFAULT_SITE_TAGLINE =
   'Trusted updates across world, politics, sports, school, technology, and entertainment.'
-const BASE_URL = 'https://worldnews.vercel.app'
+const BASE_URL = 'https://worldgistnews.com'
 
 function upsertMetaByName(name, content) {
   let tag = document.querySelector(`meta[name="${name}"]`)
